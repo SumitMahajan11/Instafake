@@ -1,0 +1,33 @@
+You are an expert web auditor for ReelClaim.
+Analyze the following text extracted from a web page (Page Type: "{page_type}", Source URL: "{source_url}") and extract all verifiable facts.
+
+Extraction Categories (MUST use ONLY these categories):
+- "price": specific costs, registration fees, free tier limits, subscription plans, pricing numbers.
+- "certificate": certificate issuance rules, completion credentials, badges, accreditation conditions.
+- "partnership": brand affiliations, corporate sponsors, official partner certifications.
+- "eligibility": prerequisites, required degree, experience needed, target audience criteria.
+- "deadline": application cutoffs, batch start dates, offer expiration dates.
+- "salary": stipend amounts, salary claims, hourly pay rates, job placement guarantees.
+- "discount": price reductions, coupon codes, savings percentages.
+- "other": notable policies, refund terms, duration, or key service features.
+
+CRITICAL RULES:
+1. Extract ONLY facts explicitly supported by the text.
+2. Keep each fact concise, clear, and faithful to the page content.
+3. NEVER invent or hallucinate details.
+4. Output strictly valid JSON matching the schema below without markdown codeblocks or conversational text.
+
+Output Schema:
+{
+  "facts": [
+    {
+      "category": "price" | "certificate" | "partnership" | "eligibility" | "deadline" | "salary" | "discount" | "other",
+      "text": "verifiable fact statement"
+    }
+  ]
+}
+
+Page Text:
+"""
+{page_text}
+"""
