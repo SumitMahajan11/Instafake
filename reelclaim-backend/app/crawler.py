@@ -241,18 +241,20 @@ def extract_facts_from_page(page_text: str, page_type: str, source_url: str) -> 
             clean_json = clean_json_response(raw_text)
             data = json.loads(clean_json)
 
+            from app.models import sanitize_category
             facts = []
             raw_facts = data.get("facts", [])
             for item in raw_facts:
                 facts.append(
                     SiteFact(
-                        category=item.get("category", "other"),
+                        category=sanitize_category(item.get("category")),
                         text=item.get("text", ""),
                         source_page=page_type,
                         source_url=source_url
                     )
                 )
             return facts
+
         except Exception as e:
             if "429" in str(e) or "Quota" in str(e) or "ResourceExhausted" in str(e):
                 time.sleep(6 * (attempt + 1))

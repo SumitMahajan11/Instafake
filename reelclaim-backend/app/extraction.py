@@ -62,7 +62,14 @@ def extract_claims(caption: str) -> ExtractionResponse:
             if data.get("promoted_site") in ["", "null", "none", None]:
                 data["promoted_site"] = None
 
+            if "claims" in data and isinstance(data["claims"], list):
+                from app.models import sanitize_category
+                for item in data["claims"]:
+                    if isinstance(item, dict):
+                        item["category"] = sanitize_category(item.get("category"))
+
             return ExtractionResponse.model_validate(data)
+
         except Exception as e:
             if "429" in str(e) and attempt < max_attempts - 1:
                 time.sleep(4 * (attempt + 1))  # Exponential backoff

@@ -13,9 +13,41 @@ ClaimCategory = Literal[
     "other"
 ]
 
+VALID_CLAIM_CATEGORIES = {
+    "price", "certificate", "partnership", "eligibility",
+    "deadline", "salary", "discount", "refund", "other"
+}
+
+CATEGORY_SYNONYMS = {
+    "pricing": "price",
+    "cost": "price",
+    "fee": "price",
+    "fees": "price",
+    "discounts": "discount",
+    "refunds": "refund",
+    "certification": "certificate",
+    "credentials": "certificate",
+    "endorsed": "partnership",
+    "partner": "partnership",
+    "prerequisites": "eligibility",
+    "qualification": "eligibility",
+    "stipend": "salary",
+    "compensation": "salary",
+    "pay": "salary"
+}
+
+def sanitize_category(val: Optional[str]) -> str:
+    if not val:
+        return "other"
+    cat = str(val).strip().lower()
+    if cat in VALID_CLAIM_CATEGORIES:
+        return cat
+    return CATEGORY_SYNONYMS.get(cat, "other")
+
 ConfidenceLevel = Literal["high", "medium", "low"]
 
 # Phase 1 Models
+
 class Claim(BaseModel):
     category: ClaimCategory = Field(..., description="Category of the claim")
     text: str = Field(..., description="Specific text description of the extracted claim")
