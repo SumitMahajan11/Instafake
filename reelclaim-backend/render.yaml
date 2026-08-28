@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: reelclaim-backend
+    env: docker
+    dockerfilePath: Dockerfile
+    region: ohio
+    plan: starter
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
