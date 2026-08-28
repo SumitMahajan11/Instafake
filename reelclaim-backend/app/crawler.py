@@ -140,7 +140,10 @@ def fetch_page_with_playwright(url: str) -> Tuple[Optional[str], str]:
         try:
             from playwright.sync_api import sync_playwright
             with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
+                browser = p.chromium.launch(
+                    headless=True,
+                    args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+                )
                 try:
                     context = browser.new_context(user_agent=HEADERS["User-Agent"])
                     page = context.new_page()

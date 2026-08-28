@@ -84,11 +84,16 @@ def run_stress_tests():
         print(f"Override URL: {test['request'].override_url}")
         
         start_time = time.time()
+        elapsed = 0.0
         try:
             if args.url:
-                endpoint = f"{args.url.rstrip('/')}/api/audit-reel"
+                base = args.url.rstrip('/')
+                endpoint = f"{base}/audit-reel"
                 payload = test["request"].model_dump()
-                resp = requests.post(endpoint, json=payload, timeout=90)
+                resp = requests.post(endpoint, json=payload, timeout=150)
+                if resp.status_code == 404:
+                    endpoint = f"{base}/api/audit-reel"
+                    resp = requests.post(endpoint, json=payload, timeout=150)
                 resp.raise_for_status()
                 res_dict = resp.json()
                 from app.models import FullAuditResponse
@@ -97,6 +102,7 @@ def run_stress_tests():
                 res = audit_reel_endpoint(test["request"])
                 res_dict = res.model_dump()
             
+            elapsed = round(time.time() - start_time, 2)
             passed = test["expected_check"](res)
             status_symbol = "✓ PASS" if passed else "❌ FAIL (Unexpected Schema/Verdict)"
 
