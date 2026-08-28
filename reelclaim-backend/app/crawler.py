@@ -118,8 +118,8 @@ def fetch_page_content(url: str) -> Tuple[Optional[str], str, str]:
         html = resp.text
         clean_text = extract_clean_text_from_html(html)
 
-        # Check if page is a JS shell (very little text content + presence of JS containers)
-        if len(clean_text) < 200 and ("id=\"root\"" in html or "id=\"__next\"" in html or "id=\"app\"" in html or "react" in html.lower()):
+        # Check if page is a JS shell (very little readable text content)
+        if len(clean_text) < 200:
             # Fallback to Playwright for JS rendering
             clean_text_pw, pw_status = fetch_page_with_playwright(url)
             if pw_status in ["success", "degraded"] and clean_text_pw and len(clean_text_pw) > len(clean_text):
