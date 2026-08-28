@@ -148,18 +148,21 @@ def fetch_page_with_playwright(url: str) -> Tuple[Optional[str], str]:
                     context = browser.new_context(user_agent=HEADERS["User-Agent"])
                     page = context.new_page()
                     try:
-                        response = page.goto(url, timeout=8000, wait_until="domcontentloaded")
+                        response = page.goto(url, timeout=15000, wait_until="domcontentloaded")
                         if response and response.status in [403, 401, 429]:
                             return None, "blocked"
                     except Exception as pe:
                         if "403" in str(pe) or "401" in str(pe):
                             return None, "blocked"
-                        raise pe
+                        # On timeout or partial load, proceed to capture whatever DOM rendered
+                        pass
 
                     page.wait_for_timeout(500)
                     content = page.content()
                     clean_text = extract_clean_text_from_html(content)
-                    return clean_text, "success"
+                    if clean_text and len(clean_text.strip()) >= 50:
+                        return clean_text, "success"
+                    return None, "failed"
                 finally:
                     browser.close()
         except Exception:
