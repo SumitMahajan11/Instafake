@@ -142,7 +142,16 @@ def fetch_page_with_playwright(url: str) -> Tuple[Optional[str], str]:
             with sync_playwright() as p:
                 browser = p.chromium.launch(
                     headless=True,
-                    args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+                    args=[
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--no-zygote",
+                        "--single-process",
+                        "--no-first-run",
+                        "--disable-extensions"
+                    ]
                 )
                 try:
                     context = browser.new_context(user_agent=HEADERS["User-Agent"])
