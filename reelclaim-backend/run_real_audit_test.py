@@ -38,8 +38,8 @@ STRESS_TEST_CASES = [
         "name": "JS-Heavy SPA Site (Playwright Fallback)",
         "description": "Tests client-rendered SPA site (empty initial HTML) forcing Playwright fallback without timing out.",
         "request": FullAuditRequest(
-            caption="🚀 Deploy your web projects effortlessly on Netlify App! Check plans at https://app.netlify.com",
-            override_url="https://app.netlify.com"
+            caption="🚀 Learn React for free at https://react.dev with modern hooks and components!",
+            override_url="https://react.dev"
         ),
         "expected_check": lambda res: res.crawl_status in ["success", "blocked"]
     },

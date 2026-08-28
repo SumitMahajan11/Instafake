@@ -122,8 +122,8 @@ def fetch_page_content(url: str) -> Tuple[Optional[str], str, str]:
         if len(clean_text) < 200 and ("id=\"root\"" in html or "id=\"__next\"" in html or "id=\"app\"" in html or "react" in html.lower()):
             # Fallback to Playwright for JS rendering
             clean_text_pw, pw_status = fetch_page_with_playwright(url)
-            if pw_status == "success" and clean_text_pw and len(clean_text_pw) > len(clean_text):
-                return clean_text_pw, "playwright", "success"
+            if pw_status in ["success", "degraded"] and clean_text_pw and len(clean_text_pw) > len(clean_text):
+                return clean_text_pw, "playwright", pw_status
             elif pw_status == "blocked":
                 return None, "playwright", "blocked"
 
@@ -156,6 +156,7 @@ def fetch_page_with_playwright(url: str) -> Tuple[Optional[str], str]:
                 try:
                     context = browser.new_context(user_agent=HEADERS["User-Agent"])
                     page = context.new_page()
+                    is_degraded = False
                     try:
                         response = page.goto(url, timeout=6000, wait_until="domcontentloaded")
                         if response and response.status in [403, 401, 429]:
@@ -163,14 +164,14 @@ def fetch_page_with_playwright(url: str) -> Tuple[Optional[str], str]:
                     except Exception as pe:
                         if "403" in str(pe) or "401" in str(pe):
                             return None, "blocked"
-                        # On timeout or partial load, proceed to capture whatever DOM rendered
-                        pass
+                        # On timeout or partial load, mark as degraded
+                        is_degraded = True
 
                     page.wait_for_timeout(500)
                     content = page.content()
                     clean_text = extract_clean_text_from_html(content)
                     if clean_text and len(clean_text.strip()) >= 50:
-                        return clean_text, "success"
+                        return clean_text, "degraded" if is_degraded else "success"
                     return None, "failed"
                 finally:
                     browser.close()
@@ -325,6 +326,7 @@ def crawl_site(target_url: str) -> CrawlResponse:
     pages_missing: List[str] = []
     all_facts: List[SiteFact] = []
     has_blocked = False
+    has_degraded = False
 
     # Crawl discovered pages (sequential with small delay)
     crawled_count = 0
@@ -338,7 +340,9 @@ def crawl_site(target_url: str) -> CrawlResponse:
         if status == "blocked":
             has_blocked = True
             continue
-        elif status == "success" and clean_text and len(clean_text.strip()) >= 50:
+        elif status in ["success", "degraded"] and clean_text and len(clean_text.strip()) >= 50:
+            if status == "degraded":
+                has_degraded = True
             pages_found.append(ptype)
             page_facts = extract_facts_from_page(clean_text, ptype, page_url)
             all_facts.extend(page_facts)
@@ -355,6 +359,8 @@ def crawl_site(target_url: str) -> CrawlResponse:
         crawl_status = "blocked"
     elif not pages_found:
         crawl_status = "failed"
+    elif has_degraded:
+        crawl_status = "degraded"
     else:
         crawl_status = "success"
 
