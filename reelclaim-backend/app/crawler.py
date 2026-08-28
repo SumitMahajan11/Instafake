@@ -136,47 +136,53 @@ def fetch_page_content(url: str) -> Tuple[Optional[str], str, str]:
 
 def fetch_page_with_playwright(url: str) -> Tuple[Optional[str], str]:
     """Fallback fetch strategy using Playwright headless browser."""
-    with PLAYWRIGHT_LOCK:
-        try:
-            from playwright.sync_api import sync_playwright
-            with sync_playwright() as p:
-                browser = p.chromium.launch(
-                    headless=True,
-                    args=[
-                        "--no-sandbox",
-                        "--disable-setuid-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-gpu",
-                        "--no-zygote",
-                        "--single-process",
-                        "--no-first-run",
-                        "--disable-extensions"
-                    ]
-                )
-                try:
-                    context = browser.new_context(user_agent=HEADERS["User-Agent"])
-                    page = context.new_page()
-                    is_degraded = False
-                    try:
-                        response = page.goto(url, timeout=6000, wait_until="domcontentloaded")
-                        if response and response.status in [403, 401, 429]:
-                            return None, "blocked"
-                    except Exception as pe:
-                        if "403" in str(pe) or "401" in str(pe):
-                            return None, "blocked"
-                        # On timeout or partial load, mark as degraded
-                        is_degraded = True
+    acquired = PLAYWRIGHT_LOCK.acquire(blocking=True, timeout=10.0)
+    if not acquired:
+        # Playwright browser is busy processing another request; return busy status to avoid OOM crash/502
+        return None, "busy"
 
-                    page.wait_for_timeout(500)
-                    content = page.content()
-                    clean_text = extract_clean_text_from_html(content)
-                    if clean_text and len(clean_text.strip()) >= 50:
-                        return clean_text, "degraded" if is_degraded else "success"
-                    return None, "failed"
-                finally:
-                    browser.close()
-        except Exception:
-            return None, "failed"
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                    "--no-zygote",
+                    "--single-process",
+                    "--no-first-run",
+                    "--disable-extensions"
+                ]
+            )
+            try:
+                context = browser.new_context(user_agent=HEADERS["User-Agent"])
+                page = context.new_page()
+                is_degraded = False
+                try:
+                    response = page.goto(url, timeout=6000, wait_until="domcontentloaded")
+                    if response and response.status in [403, 401, 429]:
+                        return None, "blocked"
+                except Exception as pe:
+                    if "403" in str(pe) or "401" in str(pe):
+                        return None, "blocked"
+                    # On timeout or partial load, mark as degraded
+                    is_degraded = True
+
+                page.wait_for_timeout(500)
+                content = page.content()
+                clean_text = extract_clean_text_from_html(content)
+                if clean_text and len(clean_text.strip()) >= 50:
+                    return clean_text, "degraded" if is_degraded else "success"
+                return None, "failed"
+            finally:
+                browser.close()
+    except Exception:
+        return None, "failed"
+    finally:
+        PLAYWRIGHT_LOCK.release()
 
 def discover_pages(base_url: str, homepage_html: Optional[str]) -> Dict[str, str]:
     """

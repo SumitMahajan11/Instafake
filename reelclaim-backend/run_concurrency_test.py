@@ -12,16 +12,26 @@ if sys.platform == "win32":
 CONCURRENT_TEST_REQUESTS = [
     {
         "id": 1,
-        "label": "Request 1 (/crawl-site - Netlify SPA Contender 1)",
+        "label": "Request 1 (TodoMVC SPA - Playwright Contender 1)",
         "payload": {
-            "url": "https://app.netlify.com"
+            "caption": "Check out todo MVC react app at https://todomvc.com/examples/react/dist/",
+            "override_url": "https://todomvc.com/examples/react/dist/"
         }
     },
     {
         "id": 2,
-        "label": "Request 2 (/crawl-site - Netlify SPA Contender 2)",
+        "label": "Request 2 (TodoMVC SPA - Playwright Contender 2)",
         "payload": {
-            "url": "https://app.netlify.com"
+            "caption": "Check out todo MVC react app at https://todomvc.com/examples/react/dist/",
+            "override_url": "https://todomvc.com/examples/react/dist/"
+        }
+    },
+    {
+        "id": 3,
+        "label": "Request 3 (TodoMVC SPA - Playwright Contender 3)",
+        "payload": {
+            "caption": "Check out todo MVC react app at https://todomvc.com/examples/react/dist/",
+            "override_url": "https://todomvc.com/examples/react/dist/"
         }
     }
 ]
@@ -31,17 +41,18 @@ def send_audit_request(backend_url: str, req_info: dict):
     label = req_info["label"]
     payload = req_info["payload"]
 
-    endpoint = f"{backend_url.rstrip('/')}/crawl-site"
+    endpoint = f"{backend_url.rstrip('/')}/audit-reel"
     start_time = time.time()
     print(f"🚀 [T0 + 0.0s] Fired {label}...")
 
     try:
-        response = requests.post(endpoint, json=payload, timeout=140)
+        response = requests.post(endpoint, json=payload, timeout=90)
         elapsed = round(time.time() - start_time, 2)
         if response.status_code == 200:
             data = response.json()
             crawl_status = data.get("crawl_status")
             claims_count = len(data.get("claims", []))
+            has_check = data.get("check_result") is not None
             return {
                 "id": req_id,
                 "label": label,
@@ -49,6 +60,7 @@ def send_audit_request(backend_url: str, req_info: dict):
                 "http_status": 200,
                 "crawl_status": crawl_status,
                 "claims_count": claims_count,
+                "has_check": has_check,
                 "error": None
             }
         else:
@@ -86,7 +98,7 @@ def run_concurrency_test():
     start_wall = time.time()
     results = []
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
+    with ThreadPoolExecutor(max_workers=3) as executor:
         futures = [
             executor.submit(send_audit_request, backend_url, req)
             for req in CONCURRENT_TEST_REQUESTS
