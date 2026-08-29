@@ -120,9 +120,7 @@ def fetch_page_content(url: str, allow_playwright: bool = True) -> Tuple[Optiona
 
         # Check if page is a JS shell (very little readable text content)
         if len(clean_text) < 200 and allow_playwright:
-            if PLAYWRIGHT_LOCK.locked():
-                return None, "playwright", "busy"
-            # Fallback to Playwright for JS rendering
+            # Fallback to Playwright for JS rendering (atomic non-blocking acquire inside)
             clean_text_pw, pw_status = fetch_page_with_playwright(url)
             if pw_status in ["success", "degraded"] and clean_text_pw and len(clean_text_pw) > len(clean_text):
                 return clean_text_pw, "playwright", pw_status
