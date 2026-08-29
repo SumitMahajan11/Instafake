@@ -92,7 +92,7 @@ def extract_clean_text_from_html(html_content: str) -> str:
     chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
     return " ".join(chunk for chunk in chunks if chunk)
 
-def fetch_page_content(url: str) -> Tuple[Optional[str], str, str]:
+def fetch_page_content(url: str, allow_playwright: bool = True) -> Tuple[Optional[str], str, str]:
     """
     Fetches web page content.
     Returns: (clean_text, strategy_used, status)
@@ -119,7 +119,7 @@ def fetch_page_content(url: str) -> Tuple[Optional[str], str, str]:
         clean_text = extract_clean_text_from_html(html)
 
         # Check if page is a JS shell (very little readable text content)
-        if len(clean_text) < 200:
+        if len(clean_text) < 200 and allow_playwright:
             # Fallback to Playwright for JS rendering
             clean_text_pw, pw_status = fetch_page_with_playwright(url)
             if pw_status in ["success", "degraded"] and clean_text_pw and len(clean_text_pw) > len(clean_text):
@@ -339,11 +339,14 @@ def crawl_site(target_url: str) -> CrawlResponse:
 
     # Crawl discovered pages (sequential with small delay)
     crawled_count = 0
+    pw_used = False
     for ptype, page_url in discovered_map.items():
         if crawled_count >= 5:  # Limit max pages per site crawl
             break
 
-        clean_text, strategy, status = fetch_page_content(page_url)
+        clean_text, strategy, status = fetch_page_content(page_url, allow_playwright=not pw_used)
+        if strategy == "playwright":
+            pw_used = True
         time.sleep(0.3)  # Gentle rate limit delay
 
         if status == "blocked":
