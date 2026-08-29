@@ -1,22 +1,234 @@
 @import "tailwindcss";
 
-:root {
-  --background: #090d16;
-  --foreground: #f8fafc;
+@layer base {
+  :root {
+    /* ── DARK THEME ("Night desk") ── */
+    --bg: #10141c;
+    --bg-card: #1a2130;
+    --bg-card-subtle: #151b26;
+    --bg-elevated: #1f2738;
+
+    --border-subtle: #2a3242;
+    --border-med: #3a4558;
+    --border-bright: #4a5570;
+
+    --text-primary: #e9e4d8;
+    --text-secondary: #9aa1b0;
+    --text-muted: #5c6577;
+    --text-accent: #e9e4d8;
+
+    /* Paper/ink accent — NOT indigo */
+    --accent-brand: #ede6d6;
+    --accent-brand-dim: #cfc7b4;
+
+    /* Verdict tokens */
+    --verdict-verified-text: #3fa772;
+    --verdict-verified-bg: #274a3a;
+    --verdict-verified-border: rgba(63, 167, 114, 0.45);
+
+    --verdict-misleading-text: #e0a339;
+    --verdict-misleading-bg: #4a3a1f;
+    --verdict-misleading-border: rgba(224, 163, 57, 0.45);
+
+    --verdict-false-text: #c4432b;
+    --verdict-false-bg: #472620;
+    --verdict-false-border: rgba(196, 67, 43, 0.45);
+
+    --verdict-unverified-text: #7c8aa8;
+    --verdict-unverified-bg: #2a3242;
+    --verdict-unverified-border: rgba(124, 138, 168, 0.35);
+
+    --grain-opacity: 0.05;
+
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+
+    --shadow-card: 0 4px 24px -8px rgba(0, 0, 0, 0.45);
+
+    /* Typography variable references */
+    --font-serif: var(--font-fraunces), Georgia, serif;
+    --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+    --font-mono: var(--font-ibm-plex-mono), 'Courier New', monospace;
+
+    /* Desk switch tokens */
+    --switch-bg: #1f2738;
+    --switch-border: #3a4558;
+    --switch-knob: #ede6d6;
+  }
+
+  [data-theme="light"] {
+    /* ── LIGHT THEME ("Day desk") ── */
+    --bg: #f7f2e7;
+    --bg-card: #fffdf9;
+    --bg-card-subtle: #fbf8f1;
+    --bg-elevated: #f4efe2;
+
+    --border-subtle: #e3dbc8;
+    --border-med: #cfc6af;
+    --border-bright: #b5a98e;
+
+    --text-primary: #2a2620;
+    --text-secondary: #6b6455;
+    --text-muted: #a89f8a;
+    --text-accent: #2a2620;
+
+    /* Dark ink accent — NOT purple */
+    --accent-brand: #2a2620;
+    --accent-brand-dim: #6b6455;
+
+    /* Verdict tokens */
+    --verdict-verified-text: #2f7d55;
+    --verdict-verified-bg: #dcefe2;
+    --verdict-verified-border: rgba(47, 125, 85, 0.4);
+
+    --verdict-misleading-text: #a5730f;
+    --verdict-misleading-bg: #f6ead0;
+    --verdict-misleading-border: rgba(165, 115, 15, 0.4);
+
+    --verdict-false-text: #a3341f;
+    --verdict-false-bg: #f6ded8;
+    --verdict-false-border: rgba(163, 52, 31, 0.4);
+
+    --verdict-unverified-text: #6b7690;
+    --verdict-unverified-bg: #eae6da;
+    --verdict-unverified-border: rgba(107, 118, 144, 0.35);
+
+    --grain-opacity: 0.035;
+
+    --shadow-card: 0 4px 24px -8px rgba(42, 38, 32, 0.1);
+
+    /* Desk switch tokens */
+    --switch-bg: #f4efe2;
+    --switch-border: #cfc6af;
+    --switch-knob: #2a2620;
+  }
 }
 
+/* ── Base body ── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
   min-height: 100vh;
+  position: relative;
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
+/* ── Grain Noise Overlay (fixed, non-interactive) ── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: var(--grain-opacity, 0.05);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  transition: opacity 0.35s ease;
+}
+
+/* ── Global smooth theme transitions ── */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.35s;
+  transition-timing-function: ease;
+}
+
+/* Preserve animation durations — don't override non-theme transitions */
+button,
+input,
+textarea,
+a,
+svg {
+  transition-property: background-color, border-color, color, opacity, transform;
+  transition-duration: 0.2s, 0.35s, 0.35s, 0.2s, 0.2s;
+}
+
+/* ── Keyboard Focus States ── */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--verdict-verified-text) !important;
+  outline-offset: 2px !important;
+}
+
+/* ── Serif utility class for headings/stamps/logo ── */
+.font-serif {
+  font-family: var(--font-serif) !important;
+}
+.font-display {
+  font-family: var(--font-serif) !important;
+}
+
+/* ── Dashed panel divider (applied as right-border on left panel) ── */
+.panel-divider {
+  border-right: none;
+  position: relative;
+}
+.panel-divider::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--border-subtle) 0,
+    var(--border-subtle) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+/* ── Stamp "thud" animation ── */
+@keyframes thud {
+  0% {
+    opacity: 0;
+    transform: scale(1.6) rotate(var(--stamp-angle, -4deg));
+  }
+  70% {
+    opacity: 1;
+    transform: scale(0.93) rotate(var(--stamp-angle, -4deg));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(var(--stamp-angle, -4deg));
+  }
+}
+
+.animate-stamp-thud {
+  animation: thud 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* ── Fade-in for result panel ── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.25s ease-out forwards;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* ── Reduced motion: disable all animations and transitions ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-stamp-thud {
+    opacity: 1 !important;
+    transform: rotate(var(--stamp-angle, -4deg)) !important;
+  }
 }

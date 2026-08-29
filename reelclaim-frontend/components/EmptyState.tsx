@@ -10,13 +10,32 @@ interface EmptyStateProps {
 export const EmptyState: React.FC<EmptyStateProps> = ({ type, message, onReset }) => {
   if (type === 'zero_claims') {
     return (
-      <div className="w-full bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center space-y-4 shadow-xl">
-        <div className="inline-flex p-3 rounded-full bg-slate-800 text-slate-400">
-          <FileQuestion className="w-8 h-8" />
+      <div
+        className="w-full rounded-xl p-8 text-center space-y-4 border shadow-sm"
+        style={{
+          backgroundColor: 'var(--bg-card)',
+          borderColor: 'var(--border-subtle)',
+          color: 'var(--text-primary)',
+        }}
+      >
+        <div
+          className="inline-flex p-3 rounded-full border"
+          style={{
+            backgroundColor: 'var(--bg-elevated)',
+            borderColor: 'var(--border-med)',
+            color: 'var(--text-muted)',
+          }}
+        >
+          <FileQuestion className="w-6 h-6" />
         </div>
-        <div className="space-y-1">
-          <h3 className="text-xl font-bold text-slate-100">No Verifiable Claims Extracted</h3>
-          <p className="text-sm text-slate-400 max-w-md mx-auto">
+        <div className="space-y-1.5">
+          <h3
+            className="text-lg font-bold"
+            style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)' }}
+          >
+            No Verifiable Claims Extracted
+          </h3>
+          <p className="text-xs max-w-md mx-auto leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
             The provided social caption did not contain explicit promotional claims (such as pricing, refunds, eligibility, or certificates).
           </p>
         </div>
@@ -24,9 +43,15 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ type, message, onReset }
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded text-xs font-semibold border transition-all cursor-pointer hover:opacity-80"
+            style={{
+              backgroundColor: 'var(--bg-elevated)',
+              borderColor: 'var(--border-bright)',
+              color: 'var(--text-primary)',
+              fontFamily: 'var(--font-mono)',
+            }}
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
             Try Another Caption
           </button>
         )}
@@ -36,13 +61,33 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ type, message, onReset }
 
   if (type === 'blocked_site') {
     return (
-      <div className="w-full bg-amber-950/30 border border-amber-800/60 rounded-2xl p-8 text-center space-y-4 shadow-xl text-amber-200">
-        <div className="inline-flex p-3 rounded-full bg-amber-950 text-amber-400 border border-amber-800/80">
-          <ShieldAlert className="w-8 h-8" />
+      <div
+        className="w-full rounded-xl p-8 text-center space-y-4 border border-l-4 shadow-sm"
+        style={{
+          backgroundColor: 'var(--bg-card)',
+          borderColor: 'var(--border-subtle)',
+          borderLeftColor: 'var(--verdict-misleading-text)',
+          color: 'var(--text-primary)',
+        }}
+      >
+        <div
+          className="inline-flex p-3 rounded-full border"
+          style={{
+            backgroundColor: 'var(--verdict-misleading-bg)',
+            borderColor: 'var(--verdict-misleading-border)',
+            color: 'var(--verdict-misleading-text)',
+          }}
+        >
+          <ShieldAlert className="w-6 h-6" />
         </div>
-        <div className="space-y-1">
-          <h3 className="text-xl font-bold text-amber-300">Could Not Verify Site — Proceed With Caution</h3>
-          <p className="text-sm text-amber-200/80 max-w-lg mx-auto">
+        <div className="space-y-1.5">
+          <h3
+            className="text-lg font-bold"
+            style={{ fontFamily: 'var(--font-serif)', color: 'var(--verdict-misleading-text)' }}
+          >
+            Could Not Verify Site — Proceed With Caution
+          </h3>
+          <p className="text-xs max-w-lg mx-auto leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
             {message || 'The target website blocked automated access (e.g. Cloudflare bot challenge or anti-scraping wall). Claims could not be cross-checked against published site pages.'}
           </p>
         </div>
@@ -50,9 +95,15 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ type, message, onReset }
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-900/60 hover:bg-amber-800/60 text-amber-100 text-sm font-semibold transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded text-xs font-semibold border transition-all cursor-pointer hover:opacity-80"
+            style={{
+              backgroundColor: 'var(--bg-elevated)',
+              borderColor: 'var(--border-med)',
+              color: 'var(--text-primary)',
+              fontFamily: 'var(--font-mono)',
+            }}
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
             Audit Different URL
           </button>
         )}
@@ -61,13 +112,33 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ type, message, onReset }
   }
 
   return (
-    <div className="w-full bg-rose-950/30 border border-rose-900/60 rounded-2xl p-8 text-center space-y-4 shadow-xl text-rose-200">
-      <div className="inline-flex p-3 rounded-full bg-rose-950 text-rose-400 border border-rose-800/80">
-        <AlertCircle className="w-8 h-8" />
+    <div
+      className="w-full rounded-xl p-8 text-center space-y-4 border border-l-4 shadow-sm"
+      style={{
+        backgroundColor: 'var(--bg-card)',
+        borderColor: 'var(--border-subtle)',
+        borderLeftColor: 'var(--verdict-false-text)',
+        color: 'var(--text-primary)',
+      }}
+    >
+      <div
+        className="inline-flex p-3 rounded-full border"
+        style={{
+          backgroundColor: 'var(--verdict-false-bg)',
+          borderColor: 'var(--verdict-false-border)',
+          color: 'var(--verdict-false-text)',
+        }}
+      >
+        <AlertCircle className="w-6 h-6" />
       </div>
-      <div className="space-y-1">
-        <h3 className="text-xl font-bold text-rose-300">Audit Service Network Error</h3>
-        <p className="text-sm text-rose-200/80 max-w-md mx-auto">
+      <div className="space-y-1.5">
+        <h3
+          className="text-lg font-bold"
+          style={{ fontFamily: 'var(--font-serif)', color: 'var(--verdict-false-text)' }}
+        >
+          Audit Service Network Error
+        </h3>
+        <p className="text-xs max-w-md mx-auto leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
           {message || 'Failed to communicate with ReelClaim backend service. Make sure the backend server is running.'}
         </p>
       </div>
@@ -75,9 +146,15 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ type, message, onReset }
         <button
           type="button"
           onClick={onReset}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-900/60 hover:bg-rose-800/60 text-rose-100 text-sm font-semibold transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded text-xs font-semibold border transition-all cursor-pointer hover:opacity-80"
+          style={{
+            backgroundColor: 'var(--bg-elevated)',
+            borderColor: 'var(--border-med)',
+            color: 'var(--text-primary)',
+            fontFamily: 'var(--font-mono)',
+          }}
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="w-3.5 h-3.5" />
           Retry Audit
         </button>
       )}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuditForm } from '@/components/AuditForm';
 import { ReportHeader } from '@/components/ReportHeader';
 import { CrawlStatusBanner } from '@/components/CrawlStatusBanner';
@@ -8,23 +8,32 @@ import { VerdictCard } from '@/components/VerdictCard';
 import { EmptyState } from '@/components/EmptyState';
 import { FullAuditResponse, ProgressStep } from '@/lib/types';
 import { auditReel } from '@/lib/api';
-import { ShieldCheck, RotateCcw } from 'lucide-react';
+import { RotateCcw, FileText, ShieldAlert } from 'lucide-react';
+import { DeskLampToggle } from '@/components/DeskLampToggle';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<ProgressStep>('idle');
+  const [retryDetails, setRetryDetails] = useState<{ retryAttempt?: number; maxRetries?: number; nextDelaySec?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [auditResult, setAuditResult] = useState<FullAuditResponse | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleAuditSubmit = async (caption: string, url: string) => {
     setIsLoading(true);
     setError(null);
     setAuditResult(null);
+    setRetryDetails(null);
     setCurrentStep('extracting');
 
     try {
-      const response = await auditReel(caption, url, (step) => {
+      const response = await auditReel(caption, url, (step, details) => {
         setCurrentStep(step);
+        if (details) setRetryDetails(details);
       });
       setAuditResult(response);
       setCurrentStep('complete');
@@ -39,113 +48,237 @@ export default function Home() {
   const handleReset = () => {
     setAuditResult(null);
     setError(null);
+    setRetryDetails(null);
     setCurrentStep('idle');
   };
 
   return (
-    <main className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Top Navigation */}
-      <header className="w-full border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-400">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-lg font-black tracking-tight text-white flex items-center gap-1">
-                Reel<span className="text-indigo-400">Claim</span>
+    <main
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: 'var(--bg)', color: 'var(--text-primary)' }}
+    >
+      {/* ── Top Navigation Bar ── */}
+      <header
+        className="w-full border-b sticky top-0 z-50"
+        style={{
+          backgroundColor: 'var(--bg-card)',
+          borderColor: 'var(--border-subtle)',
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+          {/* Logo: serif "R" in thin circle + wordmark */}
+          <div className="flex items-center gap-3">
+            {/* Circular outline badge with Fraunces "R" — NO filled background */}
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{
+                border: '1.5px solid var(--border-bright)',
+                backgroundColor: 'transparent',
+              }}
+            >
+              <span
+                className="font-serif font-bold text-base leading-none select-none"
+                style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-serif)' }}
+              >
+                R
               </span>
-              <span className="text-[10px] block font-mono text-slate-500 uppercase tracking-widest">
-                Truth & Verification Engine
+            </div>
+
+            {/* Wordmark: "ReelClaim — case ledger" as one line */}
+            <div>
+              <span
+                className="text-sm leading-none"
+                style={{ fontFamily: 'var(--font-serif)' }}
+              >
+                <span className="font-bold" style={{ color: 'var(--text-primary)' }}>ReelClaim</span>
+                <span className="font-normal" style={{ color: 'var(--text-muted)' }}> — case ledger</span>
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Right controls */}
+          <div className="flex items-center gap-2.5">
+            <DeskLampToggle />
+
             {auditResult && (
               <button
                 type="button"
                 onClick={handleReset}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold border cursor-pointer hover:opacity-80"
+                style={{
+                  backgroundColor: 'var(--bg-elevated)',
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-secondary)',
+                  fontFamily: 'var(--font-mono)',
+                }}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>New Audit</span>
               </button>
             )}
-            <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
-              v4.0 Phase 4
+
+            <span
+              className="text-[10px] px-2 py-0.5 rounded border hidden sm:inline-block"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                backgroundColor: 'transparent',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-muted)',
+              }}
+            >
+              v4.0
             </span>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-8">
-        {/* Input Form */}
-        <AuditForm
-          onSubmit={handleAuditSubmit}
-          isLoading={isLoading}
-          currentStep={currentStep}
-          error={error}
-        />
+      {/* ── Main Two-Panel Desk Layout ── */}
+      <div className="flex-1 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] min-h-[calc(100vh-120px)]">
 
-        {/* Audit Results View */}
-        {auditResult && (
-          <div id="audit-report-container" className="space-y-6 animate-fadeIn">
-            {/* Page Crawl Banner */}
-            <CrawlStatusBanner
-              crawlStatus={auditResult.crawl_status}
-              promotedSite={auditResult.promoted_site}
+          {/* LEFT PANEL: Intake Desk — no card/shadow, flat panel with dashed right divider */}
+          <aside
+            className="w-full lg:sticky lg:top-14 lg:self-start lg:h-[calc(100vh-56px)] lg:overflow-y-auto panel-divider"
+            style={{ padding: '1.5rem 1.5rem 1.5rem 1rem' }}
+          >
+            <AuditForm
+              onSubmit={handleAuditSubmit}
+              isLoading={isLoading}
+              currentStep={currentStep}
+              retryDetails={retryDetails}
+              error={error}
             />
+          </aside>
 
-            {/* Zero Claims Extracted Edge State */}
-            {auditResult.claims.length === 0 ? (
-              <EmptyState type="zero_claims" onReset={handleReset} />
-            ) : auditResult.check_result ? (
-              <>
-                {/* Header Block with Score / Unverified Badge & Disclaimer */}
-                <ReportHeader
-                  checkResult={auditResult.check_result}
+          {/* RIGHT PANEL: Results Ledger — flat, no card/shadow wrapper */}
+          <section
+            className="w-full min-w-0"
+            style={{ padding: '1.5rem 1.5rem 1.5rem 1.5rem' }}
+          >
+            {auditResult ? (
+              <div id="audit-report-container" className="space-y-5 animate-fadeIn">
+                {/* Report Header with trust gauge */}
+                {auditResult.check_result && (
+                  <ReportHeader
+                    checkResult={auditResult.check_result}
+                    promotedSite={auditResult.promoted_site}
+                  />
+                )}
+
+                {/* Crawl Status Notice */}
+                <CrawlStatusBanner
+                  crawlStatus={auditResult.crawl_status}
                   promotedSite={auditResult.promoted_site}
+                  onRetry={handleReset}
                 />
 
-                {/* Verdict Cards List */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-slate-100 tracking-tight">
-                      Evaluated Claims & Site Evidence ({auditResult.check_result.verdicts.length})
-                    </h3>
-                    <span className="text-xs text-slate-400 font-mono">
-                      Pass 1 (Aliases) + Pass 2 (LLM) + Pass 3 (Guardrail)
-                    </span>
-                  </div>
+                {/* Claim Entries or Edge States */}
+                {auditResult.claims.length === 0 ? (
+                  <EmptyState type="zero_claims" onReset={handleReset} />
+                ) : auditResult.check_result ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3
+                        className="text-xs font-bold uppercase tracking-widest flex items-center gap-1.5"
+                        style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        Ledger — {auditResult.check_result?.verdicts?.length ?? auditResult.claims.length} entries
+                      </h3>
+                    </div>
 
-                  <div className="space-y-4">
-                    {auditResult.check_result.verdicts.map((item, idx) => (
-                      <VerdictCard key={idx} verdictItem={item} index={idx} />
-                    ))}
+                    <div className="space-y-3">
+                      {(auditResult.check_result?.verdicts || []).map((item, idx) => (
+                        <VerdictCard key={idx} verdictItem={item} index={idx} />
+                      ))}
+                    </div>
                   </div>
+                ) : auditResult.crawl_status === 'blocked' ? (
+                  <EmptyState
+                    type="blocked_site"
+                    message="This site blocked our verification crawler (WAF / bot detection wall)."
+                  />
+                ) : auditResult.crawl_status === 'failed' ? (
+                  <EmptyState
+                    type="network_error"
+                    message="We couldn't reach or read this site. Try again."
+                    onReset={handleReset}
+                  />
+                ) : null}
+              </div>
+            ) : currentStep === 'error' ? (
+              <EmptyState
+                type="network_error"
+                message={error || undefined}
+                onReset={handleReset}
+              />
+            ) : (
+              /* Idle / empty ledger state */
+              <div
+                className="flex flex-col items-center justify-center min-h-[420px] text-center space-y-4 py-16"
+              >
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center"
+                  style={{ border: '1.5px solid var(--border-med)', backgroundColor: 'transparent' }}
+                >
+                  <ShieldAlert
+                    className="w-5 h-5"
+                    style={{ color: 'var(--text-muted)' }}
+                  />
                 </div>
-              </>
-            ) : auditResult.crawl_status === 'blocked' || auditResult.crawl_status === 'failed' ? (
-              <EmptyState type="blocked_site" onReset={handleReset} />
-            ) : null}
-          </div>
-        )}
+                <div className="space-y-1.5 max-w-sm">
+                  <h3
+                    className="text-base font-bold"
+                    style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)' }}
+                  >
+                    Ledger Ready
+                  </h3>
+                  <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                    Submit a reel caption in the intake desk to extract claims, crawl evidence, and output the verification ledger.
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
 
-        {/* Network / Connection Error State */}
-        {currentStep === 'error' && !auditResult && (
-          <EmptyState
-            type="network_error"
-            message={error || undefined}
-            onReset={handleReset}
-          />
-        )}
+        </div>
       </div>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-slate-800/80 bg-slate-950/40 py-6 text-center text-xs text-slate-500">
-        <p>ReelClaim — Stateless Claim Verification Engine. All site facts crawled in real time.</p>
+      {/* ── Audit Trail Footer ── */}
+      <footer
+        className="w-full border-t py-3.5 mt-auto"
+        style={{
+          backgroundColor: 'var(--bg-card)',
+          borderColor: 'var(--border-subtle)',
+        }}
+      >
+        <div
+          className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className="w-1.5 h-1.5 rounded-full inline-block"
+              style={{ backgroundColor: 'var(--verdict-verified-text)' }}
+            />
+            <span>ReelClaim Core Engine v4.0 · Stateless Audit Mode</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span>audit trail stamp</span>
+            <span
+              suppressHydrationWarning
+              className="px-1.5 py-0.5 rounded"
+              style={{
+                backgroundColor: 'var(--bg-elevated)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
+              {mounted ? `${new Date().toISOString().replace('T', ' ').slice(0, 19)} UTC` : '2026-08-29 11:34:00 UTC'}
+            </span>
+          </div>
+        </div>
       </footer>
     </main>
   );

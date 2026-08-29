@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Search, Loader2, Sparkles, AlertCircle, Link as LinkIcon, FileText } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Loader2, AlertCircle, Link as LinkIcon, FileText, Info } from 'lucide-react';
 import { ProgressStep } from '@/lib/types';
 
 interface AuditFormProps {
   onSubmit: (caption: string, url: string) => void;
   isLoading: boolean;
   currentStep: ProgressStep;
+  retryDetails?: { retryAttempt?: number; maxRetries?: number; nextDelaySec?: number } | null;
   error: string | null;
 }
 
@@ -37,10 +38,44 @@ const PRESET_EXAMPLES = [
   }
 ];
 
-export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, currentStep, error }) => {
+export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, currentStep, retryDetails, error }) => {
   const [caption, setCaption] = useState<string>('');
   const [url, setUrl] = useState<string>('');
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+
+  // Timer for smooth rotating progress status & cold-start notice
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLoading) {
+      setElapsedSeconds(0);
+      interval = setInterval(() => {
+        setElapsedSeconds((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setElapsedSeconds(0);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
+  // Dynamic rotating status message based on measured timings (HTTP: 2-5s, SPA: 18-28s, Cold start: 50s+)
+  const getStatusMessage = (): string => {
+    if (currentStep === 'crawling_busy') {
+      return `Server busy — retrying (attempt ${retryDetails?.retryAttempt || 1} of ${retryDetails?.maxRetries || 4}) in ${retryDetails?.nextDelaySec || 3}s... (Usually resolves shortly)`;
+    }
+
+    if (elapsedSeconds < 3) {
+      return 'Extracting claims from social caption...';
+    } else if (elapsedSeconds < 7) {
+      return 'Loading page & checking site structure...';
+    } else if (elapsedSeconds < 15) {
+      return 'Crawling DOM facts with Playwright engine...';
+    } else if (elapsedSeconds < 24) {
+      return 'Cross-checking claims with Gemini 2.5 Flash...';
+    } else {
+      return 'Finalizing claim verification report...';
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,46 +104,69 @@ export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, curre
     setValidationError(null);
   };
 
-  const getStepStatusClass = (stepName: 'extracting' | 'crawling' | 'cross_checking') => {
-    const stepsOrder = ['extracting', 'crawling', 'cross_checking'];
-    const currentIndex = stepsOrder.indexOf(currentStep);
-    const stepIndex = stepsOrder.indexOf(stepName);
-
-    if (stepIndex === currentIndex) {
-      return 'text-indigo-400 font-semibold animate-pulse border-indigo-500/50 bg-indigo-950/40';
+  const getStepStatusStyle = (step: 'extracting' | 'crawling' | 'cross_checking'): React.CSSProperties => {
+    if (currentStep === step || (step === 'crawling' && currentStep === 'crawling_busy')) {
+      return {
+        backgroundColor: 'var(--bg-elevated)',
+        borderColor: 'var(--border-bright)',
+        color: 'var(--text-primary)',
+        fontWeight: '600',
+      };
     }
+    const steps: Array<'extracting' | 'crawling' | 'cross_checking'> = ['extracting', 'crawling', 'cross_checking'];
+    const currentIndex = steps.indexOf(currentStep === 'crawling_busy' ? 'crawling' : (currentStep as any));
+    const stepIndex = steps.indexOf(step);
     if (stepIndex < currentIndex) {
-      return 'text-emerald-400 border-emerald-900/50 bg-emerald-950/30';
+      return {
+        backgroundColor: 'var(--verdict-verified-bg)',
+        borderColor: 'var(--verdict-verified-border)',
+        color: 'var(--verdict-verified-text)',
+      };
     }
-    return 'text-slate-500 border-slate-800 bg-slate-900/30';
+    return {
+      backgroundColor: 'var(--bg-card-subtle)',
+      borderColor: 'var(--border-subtle)',
+      color: 'var(--text-muted)',
+    };
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl space-y-6">
-      {/* Header Info */}
-      <div className="space-y-2 text-center sm:text-left">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-800/60 text-indigo-400 text-xs font-semibold uppercase tracking-wider">
-          <Sparkles className="w-3.5 h-3.5" /> Reel Claim Cross-Check Engine
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
-          Audit Reel Claims Against Site Evidence
+    <div className="w-full space-y-6">
+      {/* Header Info — plain small-caps mono eyebrow, no pill badge */}
+      <div className="space-y-2">
+        <span
+          className="text-[10px] uppercase tracking-widest font-semibold"
+          style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', letterSpacing: '0.12em' }}
+        >
+          Reel Claim Intake
+        </span>
+        <h2
+          className="text-lg font-bold tracking-tight leading-snug"
+          style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)' }}
+        >
+          Audit Claims Against Site Evidence
         </h2>
-        <p className="text-slate-400 text-sm">
-          Paste promotional caption text and optional site URL. ReelClaim extracts verifiable facts and matches them against published site pages.
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+          Paste a promotional caption and optional URL. ReelClaim extracts verifiable claims and cross-checks them against published site pages.
         </p>
       </div>
 
       {/* Preset Demo Options */}
       <div className="space-y-2">
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Try Demo Scenarios:</span>
-        <div className="flex flex-wrap gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Try Demo Scenarios:</span>
+        <div className="flex flex-wrap gap-1.5">
           {PRESET_EXAMPLES.map((preset, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => handlePresetSelect(preset)}
               disabled={isLoading}
-              className="text-xs px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border border-slate-700/60 transition-all cursor-pointer disabled:opacity-50"
+              className="text-[11px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer disabled:opacity-50 hover:opacity-80"
+              style={{
+                backgroundColor: 'var(--bg-card-subtle)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)',
+              }}
             >
               {preset.label}
             </button>
@@ -116,28 +174,33 @@ export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, curre
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Caption Textarea */}
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-            <FileText className="w-4 h-4 text-indigo-400" />
-            Social Media Caption Text <span className="text-rose-400">*</span>
+        <div className="space-y-1.5">
+          <label className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+            <FileText className="w-3.5 h-3.5" style={{ color: 'var(--text-accent)' }} />
+            Social Media Caption Text <span className="text-rose-500">*</span>
           </label>
           <textarea
             rows={4}
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             disabled={isLoading}
-            placeholder="Paste reel caption, text overlay, or promotional copy (e.g. Boot.dev offers ₹999/mo membership with 30-day money back guarantee...)"
-            className="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm transition-all resize-y"
+            placeholder="Paste reel caption, text overlay, or promotional copy..."
+            className="w-full px-3 py-2.5 border rounded-xl text-xs transition-all resize-y focus:outline-none focus:ring-2"
+            style={{
+              backgroundColor: 'var(--bg-card-subtle)',
+              borderColor: 'var(--border-med)',
+              color: 'var(--text-primary)',
+            }}
           />
         </div>
 
         {/* URL Input */}
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-            <LinkIcon className="w-4 h-4 text-indigo-400" />
-            Promoted Site URL <span className="text-xs font-normal text-slate-400">(Optional if URL is inside caption)</span>
+        <div className="space-y-1.5">
+          <label className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+            <LinkIcon className="w-3.5 h-3.5" style={{ color: 'var(--text-accent)' }} />
+            Promoted Site URL <span className="text-[10px] font-normal" style={{ color: 'var(--text-muted)' }}>(Optional)</span>
           </label>
           <input
             type="text"
@@ -145,7 +208,12 @@ export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, curre
             onChange={(e) => setUrl(e.target.value)}
             disabled={isLoading}
             placeholder="https://boot.dev/pricing"
-            className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm transition-all"
+            className="w-full px-3 py-2 border rounded-xl text-xs transition-all focus:outline-none focus:ring-2"
+            style={{
+              backgroundColor: 'var(--bg-card-subtle)',
+              borderColor: 'var(--border-med)',
+              color: 'var(--text-primary)',
+            }}
           />
         </div>
 
@@ -157,21 +225,32 @@ export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, curre
           </div>
         )}
 
-        {/* Submit Button */}
+        {/* Submit Button — flat solid fill, NO gradient */}
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 py-3.5 px-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-950/50 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-5 font-semibold text-xs rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-85"
+          style={{
+            backgroundColor: 'var(--accent-brand)',
+            color: 'var(--bg)',
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: '0.04em',
+            border: 'none',
+          }}
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Analyzing & Verifying Reel...</span>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>
+                {currentStep === 'crawling_busy'
+                  ? `Retrying (${retryDetails?.retryAttempt || 1}/${retryDetails?.maxRetries || 4})...`
+                  : getStatusMessage()}
+              </span>
             </>
           ) : (
             <>
-              <Search className="w-5 h-5" />
-              <span>Run Reel Claim Audit</span>
+              <Search className="w-3.5 h-3.5" />
+              <span>Open the case →</span>
             </>
           )}
         </button>
@@ -179,22 +258,74 @@ export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, curre
 
       {/* Multi-step Live Loading Progress */}
       {isLoading && (
-        <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-          <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-            <span className="uppercase tracking-wider">Audit Pipeline Progress</span>
-            <span className="text-[11px] text-indigo-400">Connecting to server (waking up service if idle)...</span>
+        <div
+          className="p-4 rounded-xl border space-y-3.5 animate-fadeIn"
+          style={{
+            backgroundColor: 'var(--bg-card-subtle)',
+            borderColor: 'var(--border-med)',
+          }}
+        >
+          <div className="flex items-center justify-between text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+            <span className="uppercase tracking-wider text-[10px]">Pipeline Progress</span>
+            <span className="text-xs font-semibold flex items-center gap-1.5" style={{ color: 'var(--text-accent)' }}>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              {getStatusMessage()}
+            </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-            <div className={`p-2.5 rounded-lg border text-center transition-all ${getStepStatusClass('extracting')}`}>
-              1. Extracting Claims
+
+          {/* Animated Progress Bar — flat solid, no gradient */}
+          <div
+            className="w-full h-1.5 overflow-hidden"
+            style={{
+              backgroundColor: 'var(--bg-elevated)',
+              borderRadius: '2px',
+            }}
+          >
+            <div
+              className="h-full"
+              style={{
+                width: `${Math.min(95, Math.max(8, elapsedSeconds * 4))}%`,
+                backgroundColor: 'var(--accent-brand)',
+                transition: 'width 0.5s ease-out',
+                borderRadius: '2px',
+              }}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-[11px]">
+            <div className="p-2 rounded border text-center" style={getStepStatusStyle('extracting')}>
+              1. Extracting
             </div>
-            <div className={`p-2.5 rounded-lg border text-center transition-all ${getStepStatusClass('crawling')}`}>
-              2. Crawling Site Facts
+            <div className="p-2 rounded border text-center" style={getStepStatusStyle('crawling')}>
+              {currentStep === 'crawling_busy'
+                ? `2. Busy (${retryDetails?.retryAttempt}/${retryDetails?.maxRetries})`
+                : '2. Crawling'}
             </div>
-            <div className={`p-2.5 rounded-lg border text-center transition-all ${getStepStatusClass('cross_checking')}`}>
-              3. Cross-Checking Evidence
+            <div className="p-2 rounded border text-center" style={getStepStatusStyle('cross_checking')}>
+              3. Checking
             </div>
           </div>
+
+          {/* Informational Crawl Timing Note */}
+          {elapsedSeconds >= 6 && currentStep !== 'crawling_busy' && (
+            <div
+              className="flex items-center gap-2 text-[11px] p-2.5 rounded-lg border transition-all"
+              style={{
+                backgroundColor: 'var(--bg)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <Info className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-accent)' }} />
+              <span>
+                {elapsedSeconds < 15 ? (
+                  'Full SPA crawls typically take 18–28s.'
+                ) : (
+                  'Full SPA crawls typically take 18–28s. Server may take extra time if waking from idle.'
+                )}
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>

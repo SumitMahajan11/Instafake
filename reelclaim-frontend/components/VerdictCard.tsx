@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ClaimVerdict } from '@/lib/types';
-import { ExternalLink, CheckCircle2, XCircle, AlertTriangle, HelpCircle, ChevronDown, ChevronUp, Tag } from 'lucide-react';
+import { ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface VerdictCardProps {
   verdictItem: ClaimVerdict;
@@ -10,134 +10,173 @@ interface VerdictCardProps {
 export const VerdictCard: React.FC<VerdictCardProps> = ({ verdictItem, index }) => {
   const [showReasoning, setShowReasoning] = useState<boolean>(false);
 
-  const { claim_text, category, source_type, verdict, evidence_text, source_url, reasoning } = verdictItem;
+  const { claim_text, verdict, evidence_text, source_url, reasoning } = verdictItem;
 
-  // Verdict badge configuration & visual hierarchy styles
-  const getVerdictStyle = () => {
+  // Format index as 01, 02, 03... using IBM Plex Mono
+  const formattedIndex = String(index + 1).padStart(2, '0');
+
+  // Helper to extract domain name cleanly from source_url
+  const getDomainName = (url: string | null): string => {
+    if (!url) return 'target domain';
+    try {
+      const parsed = new URL(url);
+      return parsed.hostname.replace(/^www\./, '');
+    } catch {
+      return url;
+    }
+  };
+
+  // Map API verdict to display label, colors, border accent, and stamp rotation angle
+  const getVerdictDetails = () => {
     switch (verdict) {
       case 'confirmed':
         return {
-          containerStyle: 'bg-emerald-950/20 border-emerald-900/40 hover:border-emerald-800/60 shadow-emerald-950/10',
-          badgeBg: 'bg-emerald-950/80 text-emerald-300 border-emerald-700/60',
-          icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />,
-          label: 'Confirmed',
-          headerGlow: 'text-emerald-300'
+          label: 'VERIFIED',
+          stampColor: 'var(--verdict-verified-text)',
+          stampBorder: 'var(--verdict-verified-border)',
+          stampBg: 'var(--verdict-verified-bg)',
+          leftAccentBorder: 'var(--verdict-verified-text)',
+          rotateAngle: '-4deg',
         };
       case 'contradicted':
         return {
-          containerStyle: 'bg-rose-950/30 border-rose-900/60 hover:border-rose-700/80 shadow-lg shadow-rose-950/30 ring-1 ring-rose-900/40',
-          badgeBg: 'bg-rose-950 text-rose-300 border-rose-700/80 font-bold',
-          icon: <XCircle className="w-4 h-4 text-rose-400" />,
-          label: 'Contradicted',
-          headerGlow: 'text-rose-300'
+          label: 'CONTRADICTED',
+          stampColor: 'var(--verdict-false-text)',
+          stampBorder: 'var(--verdict-false-border)',
+          stampBg: 'var(--verdict-false-bg)',
+          leftAccentBorder: 'var(--verdict-false-text)',
+          rotateAngle: '6deg',
         };
       case 'partial':
         return {
-          containerStyle: 'bg-amber-950/20 border-amber-900/40 hover:border-amber-800/60 shadow-amber-950/10',
-          badgeBg: 'bg-amber-950/80 text-amber-300 border-amber-700/60',
-          icon: <AlertTriangle className="w-4 h-4 text-amber-400" />,
-          label: 'Partial',
-          headerGlow: 'text-amber-300'
+          label: 'PARTIAL',
+          stampColor: 'var(--verdict-misleading-text)',
+          stampBorder: 'var(--verdict-misleading-border)',
+          stampBg: 'var(--verdict-misleading-bg)',
+          leftAccentBorder: 'var(--verdict-misleading-text)',
+          rotateAngle: '-3deg',
         };
       case 'not_found':
       default:
         return {
-          // Visual hierarchy rule: not_found rows recede relative to contradicted rows
-          containerStyle: 'bg-slate-900/40 border-slate-800/40 hover:border-slate-700/60 opacity-80',
-          badgeBg: 'bg-slate-800/80 text-slate-400 border-slate-700/50',
-          icon: <HelpCircle className="w-4 h-4 text-slate-400" />,
-          label: 'Not Found on Site',
-          headerGlow: 'text-slate-400'
+          label: 'UNVERIFIED',
+          stampColor: 'var(--verdict-unverified-text)',
+          stampBorder: 'var(--verdict-unverified-border)',
+          stampBg: 'var(--verdict-unverified-bg)',
+          leftAccentBorder: 'var(--border-bright)',
+          rotateAngle: '5deg',
         };
     }
   };
 
-  const style = getVerdictStyle();
+  const details = getVerdictDetails();
+  const domainName = getDomainName(source_url);
 
   return (
-    <div className={`w-full rounded-xl border p-5 transition-all space-y-4 ${style.containerStyle}`}>
-      {/* Top Bar: Claim Index, Category Badge, Verdict Badge */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono font-bold text-slate-400 px-2 py-0.5 bg-slate-800 rounded">
-            #{index + 1}
+    <div
+      className="w-full rounded-xl border p-4.5 sm:p-5 transition-all space-y-3 shadow-sm relative overflow-hidden"
+      style={{
+        backgroundColor: 'var(--bg-card)',
+        borderColor: 'var(--border-subtle)',
+        boxShadow: 'var(--shadow-card)',
+      }}
+    >
+      {/* Top Main Section: Flex layout with entry content on left & stamp badge on right */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        
+        {/* Left Column: Numbered Entry + Claim Content + Left Accent Border */}
+        <div className="flex items-start gap-3.5 flex-1 min-w-0">
+          {/* Entry Number (01, 02, ...) in IBM Plex Mono */}
+          <span
+            className="text-xs sm:text-sm font-bold tracking-wider pt-0.5 select-none flex-shrink-0"
+            style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}
+          >
+            {formattedIndex}
           </span>
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-300 px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-700/50 capitalize">
-            <Tag className="w-3 h-3 text-indigo-400" />
-            {category}
-          </span>
-          <span className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">
-            [{source_type}]
-          </span>
-        </div>
 
-        {/* Verdict Badge */}
-        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${style.badgeBg}`}>
-          {style.icon}
-          <span>{style.label}</span>
-        </div>
-      </div>
+          {/* Claim Text and Evidence block with left border accent */}
+          <div
+            className="border-l-2 pl-3.5 space-y-1.5 flex-1 min-w-0"
+            style={{ borderColor: details.leftAccentBorder }}
+          >
+            {/* Main Claim Text */}
+            <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+              {claim_text}
+            </p>
 
-      {/* Side-by-Side "Reel Says" vs "Site Says" Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        {/* Left Column: Reel Says */}
-        <div className="space-y-1.5 p-3.5 rounded-lg bg-slate-950/60 border border-slate-800/60">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Reel Claimed
-          </div>
-          <p className="text-slate-200 font-medium leading-relaxed">
-            &ldquo;{claim_text}&rdquo;
-          </p>
-        </div>
+            {/* Short Evidence Line + Source Link */}
+            <div className="flex flex-wrap items-center gap-1.5 text-xs" style={{ color: 'var(--text-secondary)' }}>
+              {evidence_text ? (
+                <span>
+                  &ldquo;{evidence_text}&rdquo; —{' '}
+                  <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {domainName}
+                  </span>
+                </span>
+              ) : (
+                <span className="italic text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                  No matching claim found on {domainName}
+                </span>
+              )}
 
-        {/* Right Column: Site Says */}
-        <div className="space-y-1.5 p-3.5 rounded-lg bg-slate-950/60 border border-slate-800/60 flex flex-col justify-between">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Site Evidence
+              {source_url && (
+                <a
+                  href={source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] font-medium hover:underline ml-1"
+                  style={{ color: 'var(--text-accent)' }}
+                >
+                  <span>Link</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
             </div>
-            {evidence_text ? (
-              <blockquote className="text-slate-200 italic leading-relaxed mt-1 border-l-2 border-indigo-500 pl-3">
-                &ldquo;{evidence_text}&rdquo;
-              </blockquote>
-            ) : (
-              <p className="text-slate-400 italic mt-1 text-xs">
-                Not addressed on the site
-              </p>
-            )}
           </div>
-
-          {/* Source Link */}
-          {source_url && (
-            <div className="pt-2">
-              <a
-                href={source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 hover:underline font-medium"
-              >
-                <span>View Source Page</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          )}
         </div>
+
+        {/* Right Column: Rotated Stamp Badge with "thud" Animation */}
+        {/* On mobile (<640px), stamp positions inline under the text */}
+        <div className="self-end sm:self-center flex-shrink-0 pt-1 sm:pt-0">
+          <div
+            className="animate-stamp-thud inline-block px-3 py-1.5 rounded border-2 text-xs font-black tracking-widest uppercase shadow-sm select-none"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              color: details.stampColor,
+              borderColor: details.stampBorder,
+              backgroundColor: details.stampBg,
+              ['--stamp-angle' as any]: details.rotateAngle,
+              transform: `rotate(${details.rotateAngle})`,
+            }}
+          >
+            {details.label}
+          </div>
+        </div>
+
       </div>
 
       {/* "Why?" Reasoning Toggle */}
-      <div className="pt-1">
+      <div className="pt-1 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
         <button
           type="button"
           onClick={() => setShowReasoning(!showReasoning)}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors cursor-pointer font-medium"
+          className="inline-flex items-center gap-1 text-xs transition-colors cursor-pointer font-medium hover:opacity-80"
+          style={{ color: 'var(--text-muted)' }}
         >
           <span>Why this verdict?</span>
           {showReasoning ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </button>
 
         {showReasoning && (
-          <div className="mt-2.5 p-3 rounded-lg bg-slate-950/80 border border-slate-800 text-xs text-slate-300 leading-relaxed animate-fadeIn">
-            <span className="font-semibold text-indigo-400">Reasoning: </span>
+          <div
+            className="mt-2 p-3 rounded-lg border text-xs leading-relaxed animate-fadeIn"
+            style={{
+              backgroundColor: 'var(--bg-elevated)',
+              borderColor: 'var(--border-subtle)',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>Reasoning: </span>
             {reasoning}
           </div>
         )}

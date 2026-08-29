@@ -44,6 +44,37 @@ def sanitize_category(val: Optional[str]) -> str:
         return cat
     return CATEGORY_SYNONYMS.get(cat, "other")
 
+def is_transient_error(e: Exception) -> bool:
+    """
+    Determines if an exception is a transient error suitable for retry:
+    - 429 Rate Limit / Quota / ResourceExhausted / TooManyRequests
+    - Transient 5xx server errors (500, 502, 503, 504)
+    Returns False for non-transient errors (400 Bad Request, 401 Unauthorized, 403 Forbidden, safety/content filters).
+    """
+    err_str = f"{type(e).__name__}: {str(e)}".lower()
+
+    # Non-retryable error signatures (400, 401, 403, client invalid input, content policy/safety blocks)
+    non_retryable = [
+        "400", "bad request", "invalid_argument", "invalidargument",
+        "401", "unauthorized",
+        "403", "forbidden", "permission_denied", "permissiondenied",
+        "safety", "blocked", "content_filter", "recitation"
+    ]
+    if any(sig in err_str for sig in non_retryable):
+        return False
+
+    # Retryable error signatures (429 rate limit/quota and 5xx server errors)
+    retryable = [
+        "429", "resourceexhausted", "resource_exhausted", "toomanyrequests", "quota", "too many requests", "rate limit",
+        "500", "502", "503", "504", "internalservererror", "internal server error", "serviceunavailable", "service unavailable",
+        "badgateway", "bad gateway", "gatewaytimeout", "gateway timeout", "overloaded", "transient"
+    ]
+    if any(sig in err_str for sig in retryable):
+        return True
+
+    return False
+
+
 ConfidenceLevel = Literal["high", "medium", "low"]
 
 # Phase 1 Models
@@ -79,7 +110,7 @@ class CrawlResponse(BaseModel):
     pages_found: List[str] = Field(default_factory=list, description="List of standardized page types successfully discovered and crawled")
     pages_missing: List[str] = Field(default_factory=list, description="List of standardized page types not found or uncrawled")
     facts: List[SiteFact] = Field(default_factory=list, description="All extracted facts from crawled pages")
-    crawl_status: Literal["success", "blocked", "failed", "degraded", "busy"] = Field(..., description="Overall crawl execution status")
+    crawl_status: Literal["success", "blocked", "failed", "degraded", "busy", "overloaded"] = Field(..., description="Overall crawl execution status")
 
 
 # Phase 3 Models (Cross-Check Engine)

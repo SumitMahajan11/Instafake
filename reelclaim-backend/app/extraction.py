@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 import google.generativeai as genai
 from dotenv import load_dotenv
-from app.models import ExtractionResponse
+from app.models import ExtractionResponse, is_transient_error
 
 # Load environment variables
 load_dotenv()
@@ -31,7 +31,8 @@ def clean_json_response(raw_text: str) -> str:
 def extract_claims(caption: str) -> ExtractionResponse:
     """
     Extracts promotional claims and promoted site from caption text using Gemini LLM.
-    Includes exponential backoff retry for free-tier rate limit handling.
+    Includes exponential backoff retry for transient 429/5xx errors.
+    Fails gracefully on retry exhaustion without crashing the caller.
     """
     if not caption or not caption.strip():
         return ExtractionResponse(promoted_site=None, claims=[])
@@ -71,7 +72,9 @@ def extract_claims(caption: str) -> ExtractionResponse:
             return ExtractionResponse.model_validate(data)
 
         except Exception as e:
-            if "429" in str(e) and attempt < max_attempts - 1:
-                time.sleep(4 * (attempt + 1))  # Exponential backoff
+            if is_transient_error(e) and attempt < max_attempts - 1:
+                time.sleep(2 ** (attempt + 1))  # Exponential backoff: 2s, 4s
                 continue
-            raise RuntimeError(f"Claim extraction failed: {str(e)}") from e
+            raise RuntimeError(f"Extraction service unavailable: {str(e)}")
+
+

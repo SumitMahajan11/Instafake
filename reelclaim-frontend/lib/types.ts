@@ -59,12 +59,14 @@ export interface FullAuditRequest {
   override_url?: string;
 }
 
+export type CrawlStatus = "success" | "degraded" | "busy" | "overloaded" | "blocked" | "failed" | "no_url_found";
+
 export interface FullAuditResponse {
   caption: string;
   promoted_site: string | null;
   claims: Claim[];
-  crawl_status: string | null;
+  crawl_status: CrawlStatus | string | null;
   check_result: CheckResponse | null;
 }
 
-export type ProgressStep = "idle" | "extracting" | "crawling" | "cross_checking" | "complete" | "error";
+export type ProgressStep = "idle" | "extracting" | "crawling" | "crawling_busy" | "cross_checking" | "complete" | "error";

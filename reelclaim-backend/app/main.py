@@ -100,7 +100,7 @@ def audit_reel_endpoint(request: FullAuditRequest):
 
         # Step 2: Crawl site
         crawl = crawl_site(target_url)
-        if crawl.crawl_status in ["blocked", "failed", "busy", "no_url_found"]:
+        if crawl.crawl_status in ["blocked", "failed", "busy", "overloaded", "no_url_found"]:
             return FullAuditResponse(
                 caption=request.caption,
                 promoted_site=target_url,

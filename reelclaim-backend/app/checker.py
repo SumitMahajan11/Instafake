@@ -3,6 +3,7 @@ import re
 import json
 import time
 from pathlib import Path
+from datetime import datetime
 from typing import List, Tuple, Optional
 from difflib import SequenceMatcher
 import google.generativeai as genai
@@ -15,10 +16,12 @@ from app.models import (
     ScoreBreakdown,
     CheckResponse,
     VerdictType,
-    ClaimCategory
+    ClaimCategory,
+    is_transient_error
 )
 
 load_dotenv()
+
 
 PROMPT_FILE = Path(__file__).parent / "prompts" / "claim_verification.txt"
 
@@ -110,16 +113,28 @@ def is_valid_evidence_text(evidence_text: Optional[str], available_facts: List[S
 
 def get_candidate_facts_for_claim(claim: Claim, all_site_facts: List[SiteFact]) -> List[SiteFact]:
     """
-    Pass 1 (Robust Category Filter):
-    Gather facts matching the exact category PLUS category aliases.
-    Prevents false 'not_found' verdicts caused by fuzzy category boundaries (e.g. price vs discount).
+    Pass 1 (Prioritized Category Filter):
+    Gather facts prioritized by category relevance:
+    1. Exact category matches
+    2. Category alias matches
+    3. Remaining site facts (prevents category-mismatch shadowing when facts are misclassified)
     """
+    if not all_site_facts:
+        return []
+
     exact_matches = [f for f in all_site_facts if f.category == claim.category]
     aliases = CATEGORY_ALIASES.get(claim.category, ["other"])
-    alias_matches = [f for f in all_site_facts if f.category in aliases and f not in exact_matches]
-    
-    combined = exact_matches + alias_matches
-    return combined if combined else list(all_site_facts)
+
+    seen_ids = {id(f) for f in exact_matches}
+    alias_matches = []
+    for f in all_site_facts:
+        if f.category in aliases and id(f) not in seen_ids:
+            alias_matches.append(f)
+            seen_ids.add(id(f))
+
+    remaining_facts = [f for f in all_site_facts if id(f) not in seen_ids]
+
+    return exact_matches + alias_matches + remaining_facts
 
 def verify_single_claim(claim: Claim, all_site_facts: List[SiteFact]) -> ClaimVerdict:
     """
@@ -159,9 +174,11 @@ def verify_single_claim(claim: Claim, all_site_facts: List[SiteFact]) -> ClaimVe
         for f in relevant_facts
     ], indent=2)
 
+    current_date_str = datetime.now().strftime("%B %d, %Y")
     template = load_verification_prompt_template()
     prompt = template.replace("{claim_text}", claim.text)\
                      .replace("{category}", claim.category)\
+                     .replace("{current_date}", current_date_str)\
                      .replace("{filtered_facts}", facts_formatted)
 
     max_attempts = 3
@@ -174,8 +191,8 @@ def verify_single_claim(claim: Claim, all_site_facts: List[SiteFact]) -> ClaimVe
             raw_data = json.loads(clean_json)
             break
         except Exception as e:
-            if "429" in str(e) and attempt < max_attempts - 1:
-                time.sleep(3 * (attempt + 1))
+            if is_transient_error(e) and attempt < max_attempts - 1:
+                time.sleep(2 ** (attempt + 1))
                 continue
             return ClaimVerdict(
                 claim_text=claim.text,
@@ -186,6 +203,7 @@ def verify_single_claim(claim: Claim, all_site_facts: List[SiteFact]) -> ClaimVe
                 source_url=None,
                 reasoning=f"Verification service unavailable: {str(e)}"
             )
+
 
     if not raw_data:
         return ClaimVerdict(
