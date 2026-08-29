@@ -25,3 +25,7 @@ dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local Artifacts & Screenshots
+*.png
+
