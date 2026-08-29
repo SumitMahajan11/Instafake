@@ -138,9 +138,9 @@ def fetch_page_content(url: str, allow_playwright: bool = True) -> Tuple[Optiona
 
 def fetch_page_with_playwright(url: str) -> Tuple[Optional[str], str]:
     """Fallback fetch strategy using Playwright headless browser."""
-    acquired = PLAYWRIGHT_LOCK.acquire(blocking=True, timeout=10.0)
+    acquired = PLAYWRIGHT_LOCK.acquire(blocking=False)
     if not acquired:
-        # Playwright browser is busy processing another request; return busy status to avoid OOM crash/502
+        # Playwright browser is busy processing another request; return busy status immediately (0ms wait)
         return None, "busy"
 
     try:
