@@ -126,6 +126,8 @@ def fetch_page_content(url: str) -> Tuple[Optional[str], str, str]:
                 return clean_text_pw, "playwright", pw_status
             elif pw_status == "blocked":
                 return None, "playwright", "blocked"
+            elif pw_status == "busy":
+                return None, "playwright", "busy"
 
         return clean_text, "requests", "success"
 
@@ -333,6 +335,7 @@ def crawl_site(target_url: str) -> CrawlResponse:
     all_facts: List[SiteFact] = []
     has_blocked = False
     has_degraded = False
+    has_busy = False
 
     # Crawl discovered pages (sequential with small delay)
     crawled_count = 0
@@ -345,6 +348,9 @@ def crawl_site(target_url: str) -> CrawlResponse:
 
         if status == "blocked":
             has_blocked = True
+            continue
+        elif status == "busy":
+            has_busy = True
             continue
         elif status in ["success", "degraded"] and clean_text and len(clean_text.strip()) >= 50:
             if status == "degraded":
@@ -363,9 +369,11 @@ def crawl_site(target_url: str) -> CrawlResponse:
     # Determine crawl status
     if not pages_found and has_blocked:
         crawl_status = "blocked"
+    elif not pages_found and has_busy:
+        crawl_status = "busy"
     elif not pages_found:
         crawl_status = "failed"
-    elif has_degraded:
+    elif has_degraded or has_busy:
         crawl_status = "degraded"
     else:
         crawl_status = "success"
