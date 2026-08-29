@@ -317,14 +317,23 @@ def crawl_site(target_url: str) -> CrawlResponse:
             )
         if r.status_code < 400:
             homepage_html = r.text
-    except requests.exceptions.RequestException:
-        # Connection refused / blocked by anti-bot firewall
+    except requests.exceptions.RequestException as e:
+        # Check if exception was an explicit HTTP 403/429 block
+        if "403" in str(e) or "429" in str(e):
+            return CrawlResponse(
+                site_url=base_url,
+                pages_found=[],
+                pages_missing=TARGET_PAGE_TYPES,
+                facts=[],
+                crawl_status="blocked"
+            )
+        # Connection refused / DNS error / timeout -> failed
         return CrawlResponse(
             site_url=base_url,
             pages_found=[],
             pages_missing=TARGET_PAGE_TYPES,
             facts=[],
-            crawl_status="blocked"
+            crawl_status="failed"
         )
 
     # 3. Discover target pages
