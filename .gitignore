@@ -28,4 +28,5 @@ Thumbs.db
 
 # Local Artifacts & Screenshots
 *.png
-
+!**/public/**/*.png
+!**/assets/**/*.png
