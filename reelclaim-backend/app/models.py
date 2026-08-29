@@ -79,7 +79,7 @@ class CrawlResponse(BaseModel):
     pages_found: List[str] = Field(default_factory=list, description="List of standardized page types successfully discovered and crawled")
     pages_missing: List[str] = Field(default_factory=list, description="List of standardized page types not found or uncrawled")
     facts: List[SiteFact] = Field(default_factory=list, description="All extracted facts from crawled pages")
-    crawl_status: Literal["success", "blocked", "failed"] = Field(..., description="Overall crawl execution status")
+    crawl_status: Literal["success", "blocked", "failed", "degraded", "busy"] = Field(..., description="Overall crawl execution status")
 
 
 # Phase 3 Models (Cross-Check Engine)
