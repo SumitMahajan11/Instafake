@@ -351,7 +351,7 @@ def crawl_site(target_url: str) -> CrawlResponse:
             continue
         elif status == "busy":
             has_busy = True
-            continue
+            break  # Lock is busy; stop attempting subsequent pages in this request to avoid stacking timeouts
         elif status in ["success", "degraded"] and clean_text and len(clean_text.strip()) >= 50:
             if status == "degraded":
                 has_degraded = True
