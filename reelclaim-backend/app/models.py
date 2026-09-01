@@ -77,6 +77,21 @@ def is_transient_error(e: Exception) -> bool:
 
 ConfidenceLevel = Literal["high", "medium", "low"]
 
+import re
+
+def is_plausible_gemini_key(key: Optional[str]) -> bool:
+    """Validates that a per-request key is a plausible Google Gemini API key format."""
+    if not key or not isinstance(key, str):
+        return False
+    k = key.strip()
+    if not k.startswith("AIza"):
+        return False
+    if len(k) < 30 or len(k) > 60:
+        return False
+    if not re.match(r"^[A-Za-z0-9_\-]+$", k):
+        return False
+    return True
+
 # Phase 1 Models
 
 class Claim(BaseModel):
@@ -87,6 +102,7 @@ class Claim(BaseModel):
 
 class ExtractionRequest(BaseModel):
     caption: str = Field(..., description="Raw promotional social media caption text")
+    gemini_api_key: Optional[str] = Field(None, description="Optional per-request Gemini API key for BYOK")
 
 class ExtractionResponse(BaseModel):
     promoted_site: Optional[str] = Field(None, description="Promoted website URL, domain, or handle mentioned in caption; null if none mentioned")
@@ -104,6 +120,7 @@ class SiteFact(BaseModel):
 
 class CrawlRequest(BaseModel):
     url: str = Field(..., description="Target website URL to crawl")
+    gemini_api_key: Optional[str] = Field(None, description="Optional per-request Gemini API key for BYOK")
 
 class CrawlResponse(BaseModel):
     site_url: str = Field(..., description="Base target site URL")
@@ -136,6 +153,7 @@ class ScoreBreakdown(BaseModel):
 class CheckRequest(BaseModel):
     claims: List[Claim] = Field(..., description="List of extracted claims from Phase 1")
     site_facts: List[SiteFact] = Field(..., description="List of extracted site facts from Phase 2")
+    gemini_api_key: Optional[str] = Field(None, description="Optional per-request Gemini API key for BYOK")
 
 class CheckResponse(BaseModel):
     trust_score: Optional[float] = Field(None, description="Calculated trust score (0.0 - 100.0%) for addressed claims, or null if unverified/no data")
@@ -147,11 +165,16 @@ class CheckResponse(BaseModel):
 class FullAuditRequest(BaseModel):
     caption: str = Field(..., description="Social media post caption")
     override_url: Optional[str] = Field(None, description="Optional target URL to crawl if not extracted from caption")
+    gemini_api_key: Optional[str] = Field(None, description="Optional per-request Gemini API key for BYOK")
 
 class FullAuditResponse(BaseModel):
+    id: Optional[str] = Field(None, description="Persisted audit ID if database persistence is enabled")
+    created_at: Optional[str] = Field(None, description="ISO timestamp of audit creation")
     caption: str = Field(..., description="Input caption")
     promoted_site: Optional[str] = Field(None, description="Promoted website URL")
     claims: List[Claim] = Field(default_factory=list, description="Extracted claims")
     crawl_status: Optional[str] = Field(None, description="Crawl status")
     check_result: Optional[CheckResponse] = Field(None, description="Cross-check verification response")
+
+
 
