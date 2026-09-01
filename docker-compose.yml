@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: reelclaim-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: reelclaim
+      POSTGRES_PASSWORD: reelclaim_pass
+      POSTGRES_DB: reelclaim
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reelclaim -d reelclaim"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./reelclaim-backend
+      dockerfile: Dockerfile
+    container_name: reelclaim-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash-lite}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://reelclaim:reelclaim_pass@postgres:5432/reelclaim}
+      - REQUIRE_AUTH=${REQUIRE_AUTH:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./reelclaim-frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    container_name: reelclaim-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
