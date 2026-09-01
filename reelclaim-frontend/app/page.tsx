@@ -6,8 +6,10 @@ import { ReportHeader } from '@/components/ReportHeader';
 import { CrawlStatusBanner } from '@/components/CrawlStatusBanner';
 import { VerdictCard } from '@/components/VerdictCard';
 import { EmptyState } from '@/components/EmptyState';
+import { CaseIdBanner } from '@/components/CaseIdBanner';
+import { RecentAudits } from '@/components/RecentAudits';
 import { FullAuditResponse, ProgressStep } from '@/lib/types';
-import { auditReel } from '@/lib/api';
+import { auditReel, fetchAuditById } from '@/lib/api';
 import { RotateCcw, FileText, ShieldAlert } from 'lucide-react';
 import { DeskLampToggle } from '@/components/DeskLampToggle';
 
@@ -17,13 +19,21 @@ export default function Home() {
   const [retryDetails, setRetryDetails] = useState<{ retryAttempt?: number; maxRetries?: number; nextDelaySec?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [auditResult, setAuditResult] = useState<FullAuditResponse | null>(null);
+  const [refreshRecentTrigger, setRefreshRecentTrigger] = useState<number>(0);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const auditId = params.get('audit');
+      if (auditId) {
+        handleSelectAudit(auditId);
+      }
+    }
   }, []);
 
-  const handleAuditSubmit = async (caption: string, url: string) => {
+  const handleAuditSubmit = async (caption: string, url: string, apiKey?: string) => {
     setIsLoading(true);
     setError(null);
     setAuditResult(null);
@@ -31,14 +41,40 @@ export default function Home() {
     setCurrentStep('extracting');
 
     try {
-      const response = await auditReel(caption, url, (step, details) => {
+      const response = await auditReel(caption, url, apiKey, (step, details) => {
         setCurrentStep(step);
         if (details) setRetryDetails(details);
       });
       setAuditResult(response);
       setCurrentStep('complete');
+      setRefreshRecentTrigger((prev) => prev + 1);
+
+      if (response.id && typeof window !== 'undefined') {
+        window.history.pushState({}, '', `?audit=${response.id}`);
+      }
     } catch (err: any) {
       setError(err.message || 'Audit request failed');
+      setCurrentStep('error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectAudit = async (auditId: string) => {
+    setIsLoading(true);
+    setError(null);
+    setAuditResult(null);
+    setCurrentStep('extracting');
+
+    try {
+      const data = await fetchAuditById(auditId);
+      setAuditResult(data);
+      setCurrentStep('complete');
+      if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', `?audit=${auditId}`);
+      }
+    } catch (err: any) {
+      setError(err.message || `Audit record #${auditId} not found.`);
       setCurrentStep('error');
     } finally {
       setIsLoading(false);
@@ -50,6 +86,9 @@ export default function Home() {
     setError(null);
     setRetryDetails(null);
     setCurrentStep('idle');
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', window.location.pathname);
+    }
   };
 
   return (
@@ -68,7 +107,6 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           {/* Logo: serif "R" in thin circle + wordmark */}
           <div className="flex items-center gap-3">
-            {/* Circular outline badge with Fraunces "R" — NO filled background */}
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
               style={{
@@ -84,7 +122,6 @@ export default function Home() {
               </span>
             </div>
 
-            {/* Wordmark: "ReelClaim — case ledger" as one line */}
             <div>
               <span
                 className="text-sm leading-none"
@@ -136,7 +173,7 @@ export default function Home() {
       <div className="flex-1 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] min-h-[calc(100vh-120px)]">
 
-          {/* LEFT PANEL: Intake Desk — no card/shadow, flat panel with dashed right divider */}
+          {/* LEFT PANEL: Intake Desk & Recent Audits */}
           <aside
             className="w-full lg:sticky lg:top-14 lg:self-start lg:h-[calc(100vh-56px)] lg:overflow-y-auto panel-divider"
             style={{ padding: '1.5rem 1.5rem 1.5rem 1rem' }}
@@ -148,15 +185,26 @@ export default function Home() {
               retryDetails={retryDetails}
               error={error}
             />
+
+            <RecentAudits
+              onSelectAudit={handleSelectAudit}
+              selectedAuditId={auditResult?.id}
+              refreshTrigger={refreshRecentTrigger}
+            />
           </aside>
 
-          {/* RIGHT PANEL: Results Ledger — flat, no card/shadow wrapper */}
+          {/* RIGHT PANEL: Results Ledger */}
           <section
             className="w-full min-w-0"
             style={{ padding: '1.5rem 1.5rem 1.5rem 1.5rem' }}
           >
             {auditResult ? (
               <div id="audit-report-container" className="space-y-5 animate-fadeIn">
+                {/* Case ID Banner if audit was persisted */}
+                {auditResult.id && (
+                  <CaseIdBanner auditId={auditResult.id} />
+                )}
+
                 {/* Report Header with trust gauge */}
                 {auditResult.check_result && (
                   <ReportHeader
@@ -261,7 +309,7 @@ export default function Home() {
               className="w-1.5 h-1.5 rounded-full inline-block"
               style={{ backgroundColor: 'var(--verdict-verified-text)' }}
             />
-            <span>ReelClaim Core Engine v4.0 · Stateless Audit Mode</span>
+            <span>ReelClaim Core Engine v4.0 · Persistent Ledger Mode</span>
           </div>
           <div className="flex items-center gap-2">
             <span>audit trail stamp</span>
