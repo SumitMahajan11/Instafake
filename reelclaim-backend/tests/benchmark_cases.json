@@ -1,0 +1,960 @@
+[
+  {
+    "id": "case_001",
+    "caption": "Get our full software suite for just $29/mo on our Hobby tier! Check out example.com/pricing",
+    "claim": {
+      "text": "Software suite is $29/mo on the Hobby plan",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Hobby Plan: $29 per month billed monthly. Includes full software suite access.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_002",
+    "caption": "We offer a risk-free 14-day money-back guarantee if you're not satisfied. Visit example.com/terms",
+    "claim": {
+      "text": "14-day money-back guarantee available",
+      "category": "refund",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Money-Back Guarantee: Customers may request a 100% refund within 14 days of initial purchase.",
+        "category": "refund",
+        "source_page": "terms",
+        "source_url": "https://example.com/terms"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_003",
+    "caption": "Complete the Python Masterclass and receive a verified completion certificate!",
+    "claim": {
+      "text": "Verified completion certificate included upon finishing the course",
+      "category": "certificate",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Students who complete all required course modules receive a verified digital certificate of completion.",
+        "category": "certificate",
+        "source_page": "course",
+        "source_url": "https://example.com/python-course"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_004",
+    "caption": "Use promo code SAVE20 at checkout for 20% off your annual subscription!",
+    "claim": {
+      "text": "Promo code SAVE20 gives 20% off annual subscriptions",
+      "category": "discount",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Apply coupon code SAVE20 during checkout to receive 20% off any annual plan.",
+        "category": "discount",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_005",
+    "caption": "Learn web development from scratch! No prior coding experience required.",
+    "claim": {
+      "text": "No prior coding experience required",
+      "category": "eligibility",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Prerequisites: None. This course is designed for absolute beginners with zero programming experience.",
+        "category": "eligibility",
+        "source_page": "course",
+        "source_url": "https://example.com/web-dev"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_006",
+    "caption": "Special launch price valid through December 31, 2026. Register today!",
+    "claim": {
+      "text": "Special launch pricing valid through December 31, 2026",
+      "category": "deadline",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Promotional launch rate of $49 is valid for all enrollments completed on or before December 31, 2026.",
+        "category": "deadline",
+        "source_page": "home",
+        "source_url": "https://example.com"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_007",
+    "caption": "Bootcamp graduates report an average starting salary of $85,000!",
+    "claim": {
+      "text": "Average graduate starting salary is $85,000",
+      "category": "salary",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "According to our 2025 graduate survey, the average starting salary for full-time employed graduates is $85,000.",
+        "category": "salary",
+        "source_page": "outcomes",
+        "source_url": "https://example.com/outcomes"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_008",
+    "caption": "We are an official AWS Authorized Training Partner for Cloud Architect certification.",
+    "claim": {
+      "text": "Official AWS Authorized Training Partner",
+      "category": "partnership",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Cloud Academy is an AWS Authorized Training Partner offering official Amazon Web Services curriculum.",
+        "category": "partnership",
+        "source_page": "about",
+        "source_url": "https://example.com/about"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_009",
+    "caption": "Try our platform free for 14 days with no credit card required!",
+    "claim": {
+      "text": "14-day free trial with no credit card required",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Start your free 14-day trial today. No credit card or payment details required to sign up.",
+        "category": "price",
+        "source_page": "signup",
+        "source_url": "https://example.com/signup"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_010",
+    "caption": "Get lifetime access to all course materials for a one-time payment of $199.",
+    "claim": {
+      "text": "Lifetime access for a one-time payment of $199",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Lifetime Pass: $199 one-time payment. Enjoy unlimited lifetime access to all current and future lessons.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_011",
+    "caption": "Full refund available within 30 days of registration. Details at example.com/terms",
+    "claim": {
+      "text": "Full refund available within 30 days of registration",
+      "category": "refund",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Cancellation Policy: Full refunds are granted for any request submitted within 30 calendar days of registration.",
+        "category": "refund",
+        "source_page": "terms",
+        "source_url": "https://example.com/terms"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_012",
+    "caption": "Students get 50% off with a valid university .edu email address!",
+    "claim": {
+      "text": "50% student discount with valid .edu email address",
+      "category": "discount",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Student Discount: Currently enrolled university students with a valid .edu email address receive 50% off standard pricing.",
+        "category": "discount",
+        "source_page": "students",
+        "source_url": "https://example.com/students"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_013",
+    "caption": "Enrolment is open to all legal residents of the United States and Canada.",
+    "claim": {
+      "text": "Open to legal residents of the US and Canada",
+      "category": "eligibility",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Eligibility: Program registration is open to legal residents of the United States and Canada aged 18 or older.",
+        "category": "eligibility",
+        "source_page": "terms",
+        "source_url": "https://example.com/terms"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+
+  {
+    "id": "case_014",
+    "caption": "Earn a CPD-accredited certificate upon passing the final exam.",
+    "claim": {
+      "text": "CPD-accredited certificate awarded upon passing final exam",
+      "category": "certificate",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Accreditation: Upon scoring 70% or higher on the final exam, students receive an official CPD-accredited certificate.",
+        "category": "certificate",
+        "source_page": "faq",
+        "source_url": "https://example.com/faq"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "case_015",
+    "caption": "Our app is 100% free forever with no hidden costs for all features!",
+    "claim": {
+      "text": "100% free forever for all features",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Free tier is limited to 3 active projects. Access to advanced features requires a paid subscription starting at $15/month.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_016",
+    "caption": "Pro plan is only $9 per month! Sign up today at example.com/pricing",
+    "claim": {
+      "text": "Pro plan costs $9 per month",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Pro Plan pricing starts at $29 per month when billed annually, or $39 month-to-month.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_017",
+    "caption": "We guarantee a 100% money back refund anytime, no questions asked!",
+    "claim": {
+      "text": "100% money back refund anytime with no questions asked",
+      "category": "refund",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "All sales and digital download purchases are final and strictly non-refundable under any circumstances.",
+        "category": "refund",
+        "source_page": "terms",
+        "source_url": "https://example.com/terms"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_018",
+    "caption": "100% guaranteed job placement within 3 months of graduating or your tuition back!",
+    "claim": {
+      "text": "100% guaranteed job placement within 3 months or money back",
+      "category": "other",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "We provide career assistance and resume guidance, but we do not offer job placement guarantees or tuition refunds.",
+        "category": "other",
+        "source_page": "terms",
+        "source_url": "https://example.com/terms"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_019",
+    "caption": "Enroll now and get a free accredited university degree upon completion!",
+    "claim": {
+      "text": "Free accredited university degree included",
+      "category": "certificate",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Course completion awards an internal certificate of completion. We do not issue college degrees or university credits.",
+        "category": "certificate",
+        "source_page": "faq",
+        "source_url": "https://example.com/faq"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_020",
+    "caption": "Our bootcamp graduates earn an average salary of $150,000 in their first job!",
+    "claim": {
+      "text": "Graduates earn an average salary of $150,000 in their first job",
+      "category": "salary",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Based on verified 2025 graduate placement reports, the average starting salary for alumni is $68,000 per year.",
+        "category": "salary",
+        "source_page": "outcomes",
+        "source_url": "https://example.com/outcomes"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_021",
+    "caption": "No prerequisites or prior degree needed for Masterclass enrollment!",
+    "claim": {
+      "text": "No prerequisites or prior degree needed",
+      "category": "eligibility",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Admission Requirements: Applicants must possess a Bachelor's degree in Computer Science or a related STEM field.",
+        "category": "eligibility",
+        "source_page": "admissions",
+        "source_url": "https://example.com/admissions"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_022",
+    "caption": "We are an official Microsoft Certified Training Partner!",
+    "claim": {
+      "text": "Official Microsoft Certified Training Partner",
+      "category": "partnership",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Disclaimer: Code Academy is an independent educational provider and is not affiliated with or endorsed by Microsoft Corporation.",
+        "category": "partnership",
+        "source_page": "legal",
+        "source_url": "https://example.com/legal"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_023",
+    "caption": "Get 80% off all courses with discount code REEL80!",
+    "claim": {
+      "text": "80% off all courses with code REEL80",
+      "category": "discount",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Coupon code REEL80 provides a 15% discount on introductory courses only.",
+        "category": "discount",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_024",
+    "caption": "Try all premium tools free for 60 days! No commitment.",
+    "claim": {
+      "text": "60-day free trial for premium tools",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "New users receive a 7-day free trial. Credit card is required at registration to initiate trial period.",
+        "category": "price",
+        "source_page": "signup",
+        "source_url": "https://example.com/signup"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_025",
+    "caption": "Get 50% off launch discount valid through January 2024!",
+    "claim": {
+      "text": "50% off launch discount valid through January 2024",
+      "category": "deadline",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "The 50% launch promotion ended on January 31, 2024. Standard pricing now applies to all new enrollments.",
+        "category": "deadline",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_026",
+    "caption": "Instant automated refunds granted within 90 days of purchase.",
+    "claim": {
+      "text": "Instant automated refunds within 90 days",
+      "category": "refund",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Refund processing takes 5-7 business days after manual review. Requests must be submitted within 14 days of purchase.",
+        "category": "refund",
+        "source_page": "terms",
+        "source_url": "https://example.com/terms"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_027",
+    "caption": "Zero transaction fees on all international currency exchanges!",
+    "claim": {
+      "text": "Zero transaction fees on currency exchanges",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "All international foreign currency exchange transactions incur a standard processing fee of 1.5%.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "contradicted"
+  },
+  {
+    "id": "case_028",
+    "caption": "100% money back guarantee if you're not completely satisfied with the course!",
+    "claim": {
+      "text": "100% money back guarantee if not satisfied",
+      "category": "refund",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "100% money-back refund is valid within 14 days of purchase, provided the student has completed less than 20% of the course content.",
+        "category": "refund",
+        "source_page": "terms",
+        "source_url": "https://example.com/terms"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_029",
+    "caption": "Get your industry certification upon finishing the program!",
+    "claim": {
+      "text": "Industry certification awarded upon finishing the program",
+      "category": "certificate",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Certificates are granted upon completing all assignments and passing the final proctored exam with a minimum score of 80%.",
+        "category": "certificate",
+        "source_page": "faq",
+        "source_url": "https://example.com/faq"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_030",
+    "caption": "Enjoy 50% off your entire order with code HALF50!",
+    "claim": {
+      "text": "50% off entire order with code HALF50",
+      "category": "discount",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Code HALF50 applies a 50% discount to annual subscriptions only. Excludes monthly plans and add-on services.",
+        "category": "discount",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_031",
+    "caption": "Our software subscription is only $19 per month!",
+    "claim": {
+      "text": "Software subscription is $19 per month",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Monthly subscription is $19/month plus a mandatory one-time account activation fee of $49 for new users.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_032",
+    "caption": "Free trial available for all new registered users!",
+    "claim": {
+      "text": "Free trial available for all new users",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "New accounts receive a 7-day free trial restricted to basic features; API access and data export require a paid plan.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_033",
+    "caption": "Tuition refund guarantee if you don't land a job as a developer!",
+    "claim": {
+      "text": "Tuition refund guarantee if you do not land a developer job",
+      "category": "refund",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Tuition refund applies only if the student completes 50 weekly job applications, attends career coaching sessions, and resides in designated metropolitan areas.",
+        "category": "refund",
+        "source_page": "terms",
+        "source_url": "https://example.com/terms"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_034",
+    "caption": "Graduates earn up to $120,000 per year after completion!",
+    "claim": {
+      "text": "Graduates earn up to $120,000 per year",
+      "category": "salary",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Graduate reported earnings range from $55,000 to $120,000 annually, depending on prior industry experience and location.",
+        "category": "salary",
+        "source_page": "outcomes",
+        "source_url": "https://example.com/outcomes"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+
+  {
+    "id": "case_035",
+    "caption": "Our service is available to anyone worldwide!",
+    "claim": {
+      "text": "Service is available worldwide to anyone",
+      "category": "eligibility",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Software services are accessible globally, but physical hardware delivery is currently limited to North America and Europe.",
+        "category": "eligibility",
+        "source_page": "faq",
+        "source_url": "https://example.com/faq"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_036",
+    "caption": "Special $99 pricing ends this Friday midnight!",
+    "claim": {
+      "text": "Special $99 pricing ends this Friday",
+      "category": "deadline",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Early bird rate of $99 is available until Friday or until the first 100 spots are filled, whichever comes first.",
+        "category": "deadline",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_037",
+    "caption": "Partnered with Google Cloud to train cloud engineers!",
+    "claim": {
+      "text": "Partnered with Google Cloud to train cloud engineers",
+      "category": "partnership",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "We are a participant in the Google Cloud Partner Advantage Program as a technology member.",
+        "category": "partnership",
+        "source_page": "about",
+        "source_url": "https://example.com/about"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_038",
+    "caption": "Subscription is only $10 per month!",
+    "claim": {
+      "text": "Subscription is $10 per month",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Pricing is $10/month when billed annually ($120 upfront). Month-to-month subscription rate is $18/month.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_039",
+    "caption": "Full refund policy for all software licenses returned!",
+    "claim": {
+      "text": "Full refund policy for software licenses",
+      "category": "refund",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Unused license keys qualify for a refund within 30 days minus a 15% administrative processing fee.",
+        "category": "refund",
+        "source_page": "terms",
+        "source_url": "https://example.com/terms"
+      }
+    ],
+    "expected_verdict": "partial"
+  },
+  {
+    "id": "case_040",
+    "caption": "We offer an unconditional 60-day money back guarantee on all plans!",
+    "claim": {
+      "text": "Unconditional 60-day money back guarantee",
+      "category": "refund",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Subscription pricing: Pro plan costs $29/month. Payments accepted via Credit Card or PayPal.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      },
+      {
+        "text": "Users must agree to terms of service before account creation.",
+        "category": "other",
+        "source_page": "terms",
+        "source_url": "https://example.com/terms"
+      }
+    ],
+    "expected_verdict": "not_found"
+  },
+  {
+    "id": "case_041",
+    "caption": "Includes 1-on-1 resume reviews and mock interviews with FAANG engineers!",
+    "claim": {
+      "text": "Includes 1-on-1 resume reviews and mock interviews with FAANG engineers",
+      "category": "other",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Syllabus includes 10 modules covering Data Structures, Algorithms, and System Design.",
+        "category": "other",
+        "source_page": "curriculum",
+        "source_url": "https://example.com/curriculum"
+      }
+    ],
+    "expected_verdict": "not_found"
+  },
+  {
+    "id": "case_042",
+    "caption": "Earn 15 transferable university credits towards a Master's degree!",
+    "claim": {
+      "text": "Earn 15 transferable university credits",
+      "category": "certificate",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Course duration is 12 weeks with estimated 10 hours per week of coursework.",
+        "category": "certificate",
+        "source_page": "overview",
+        "source_url": "https://example.com/overview"
+      }
+    ],
+    "expected_verdict": "not_found"
+  },
+  {
+    "id": "case_043",
+    "caption": "95% of graduates receive a salary increase within 6 months of graduating!",
+    "claim": {
+      "text": "95% of graduates receive a salary increase within 6 months",
+      "category": "salary",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Enrollment is conducted online. Classes begin on the first Monday of every month.",
+        "category": "other",
+        "source_page": "faq",
+        "source_url": "https://example.com/faq"
+      }
+    ],
+    "expected_verdict": "not_found"
+  },
+  {
+    "id": "case_044",
+    "caption": "Use code VIP2026 for $100 off your enrollment fee!",
+    "claim": {
+      "text": "Code VIP2026 gives $100 off enrollment fee",
+      "category": "discount",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Standard tuition is $999 payable in full or in 3 monthly installments of $340.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "not_found"
+  },
+  {
+    "id": "case_045",
+    "caption": "Our coaching certification is officially accredited by the ICF!",
+    "claim": {
+      "text": "Officially accredited by the ICF",
+      "category": "partnership",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Our mission is to empower leaders through evidence-based executive coaching tools.",
+        "category": "other",
+        "source_page": "about",
+        "source_url": "https://example.com/about"
+      }
+    ],
+    "expected_verdict": "not_found"
+  },
+  {
+    "id": "case_046",
+    "caption": "No income verification required for our 0% APR financing options!",
+    "claim": {
+      "text": "No income verification required for financing",
+      "category": "eligibility",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "We accept major credit cards, debit cards, and Klarna financing at checkout.",
+        "category": "price",
+        "source_page": "pricing",
+        "source_url": "https://example.com/pricing"
+      }
+    ],
+    "expected_verdict": "not_found"
+  },
+  {
+    "id": "case_047",
+    "caption": "Includes 50GB of free secure cloud storage for life!",
+    "claim": {
+      "text": "Includes 50GB free cloud storage for life",
+      "category": "price",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "PhotoEditor Pro includes vector drawing, AI background removal, and batch image processing.",
+        "category": "other",
+        "source_page": "features",
+        "source_url": "https://example.com/features"
+      }
+    ],
+    "expected_verdict": "not_found"
+  },
+  {
+    "id": "case_048",
+    "caption": "Registration for this cohort closes midnight tonight!",
+    "claim": {
+      "text": "Registration closes midnight tonight",
+      "category": "deadline",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Course topics include Data Analysis with Pandas, SQL Fundamentals, and Tableau Dashboards.",
+        "category": "other",
+        "source_page": "curriculum",
+        "source_url": "https://example.com/curriculum"
+      }
+    ],
+    "expected_verdict": "not_found"
+  },
+  {
+    "id": "case_049",
+    "caption": "Risk-free trial with instant automated cancellation via dashboard!",
+    "claim": {
+      "text": "Instant automated trial cancellation via dashboard",
+      "category": "refund",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Platform features include automated email workflows, CRM integration, and custom lead forms.",
+        "category": "other",
+        "source_page": "features",
+        "source_url": "https://example.com/features"
+      }
+    ],
+    "expected_verdict": "not_found"
+  },
+  {
+    "id": "case_050",
+    "caption": "Recognized by Forbes as a top 10 online coding bootcamp!",
+    "claim": {
+      "text": "Recognized by Forbes as a top 10 online bootcamp",
+      "category": "partnership",
+      "source_type": "caption",
+      "confidence": "high"
+    },
+    "site_facts": [
+      {
+        "text": "Our curriculum was updated for 2026 to incorporate modern AI engineering practices.",
+        "category": "other",
+        "source_page": "about",
+        "source_url": "https://example.com/about"
+      }
+    ],
+    "expected_verdict": "not_found"
+  }
+]
