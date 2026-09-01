@@ -20,10 +20,13 @@ from app.models import (
     is_transient_error
 )
 
+from app.security import check_for_prompt_injection
+
 load_dotenv()
 
 
-PROMPT_FILE = Path(__file__).parent / "prompts" / "claim_verification.txt"
+SYSTEM_PROMPT_FILE = Path(__file__).parent / "prompts" / "claim_verification_system.txt"
+USER_PROMPT_FILE = Path(__file__).parent / "prompts" / "claim_verification_user.txt"
 
 CATEGORY_ALIASES = {
     "price": ["price", "discount", "refund", "terms", "other"],
@@ -37,11 +40,22 @@ CATEGORY_ALIASES = {
     "other": ["other"]
 }
 
-def load_verification_prompt_template() -> str:
-    """Reads the prompt template file at runtime."""
-    if not PROMPT_FILE.exists():
-        raise FileNotFoundError(f"Verification prompt template not found at {PROMPT_FILE}")
-    with open(PROMPT_FILE, "r", encoding="utf-8") as f:
+def load_verification_system_prompt() -> str:
+    """Reads the system prompt file at runtime."""
+    if not SYSTEM_PROMPT_FILE.exists():
+        legacy_file = Path(__file__).parent / "prompts" / "claim_verification.txt"
+        if legacy_file.exists():
+            with open(legacy_file, "r", encoding="utf-8") as f:
+                return f.read()
+        raise FileNotFoundError(f"Verification system prompt not found at {SYSTEM_PROMPT_FILE}")
+    with open(SYSTEM_PROMPT_FILE, "r", encoding="utf-8") as f:
+        return f.read()
+
+def load_verification_user_prompt() -> str:
+    """Reads the user prompt template file at runtime."""
+    if not USER_PROMPT_FILE.exists():
+        raise FileNotFoundError(f"Verification user prompt template not found at {USER_PROMPT_FILE}")
+    with open(USER_PROMPT_FILE, "r", encoding="utf-8") as f:
         return f.read()
 
 def clean_json_response(raw_text: str) -> str:
@@ -136,11 +150,11 @@ def get_candidate_facts_for_claim(claim: Claim, all_site_facts: List[SiteFact]) 
 
     return exact_matches + alias_matches + remaining_facts
 
-def verify_single_claim(claim: Claim, all_site_facts: List[SiteFact]) -> ClaimVerdict:
+def verify_single_claim(claim: Claim, all_site_facts: List[SiteFact], api_key: Optional[str] = None) -> ClaimVerdict:
     """
     Two-pass claim verification:
     Pass 1: Gather facts via category + alias matching.
-    Pass 2: LLM reasoning for verdict generation.
+    Pass 2: LLM reasoning for verdict generation using system_instruction and untrusted data tags.
     Pass 3: Calibrated programmatic evidence verification.
     """
     relevant_facts = get_candidate_facts_for_claim(claim, all_site_facts)
@@ -156,16 +170,22 @@ def verify_single_claim(claim: Claim, all_site_facts: List[SiteFact]) -> ClaimVe
             reasoning=f"No site facts found under category '{claim.category}' or its aliases."
         )
 
+    # Sanity check site facts for potential prompt injection attempts
+    for fact in relevant_facts:
+        check_for_prompt_injection(fact.text, source_identifier=f"site_fact from {fact.source_url}")
+
     # Pass 2: LLM Reasoning
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
+    effective_api_key = (api_key.strip() if api_key and api_key.strip() else None) or os.getenv("GEMINI_API_KEY")
+    if not effective_api_key:
         raise ValueError("GEMINI_API_KEY environment variable is missing.")
 
     model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
-    genai.configure(api_key=api_key)
+    genai.configure(api_key=effective_api_key)
 
+    system_instruction = load_verification_system_prompt()
     model = genai.GenerativeModel(
         model_name=model_name,
+        system_instruction=system_instruction,
         generation_config={"response_mime_type": "application/json"}
     )
 
@@ -175,17 +195,18 @@ def verify_single_claim(claim: Claim, all_site_facts: List[SiteFact]) -> ClaimVe
     ], indent=2)
 
     current_date_str = datetime.now().strftime("%B %d, %Y")
-    template = load_verification_prompt_template()
-    prompt = template.replace("{claim_text}", claim.text)\
-                     .replace("{category}", claim.category)\
-                     .replace("{current_date}", current_date_str)\
-                     .replace("{filtered_facts}", facts_formatted)
+    user_template = load_verification_user_prompt()
+    user_prompt = user_template.replace("{claim_text}", claim.text)\
+                               .replace("{category}", claim.category)\
+                               .replace("{current_date}", current_date_str)\
+                               .replace("{filtered_facts}", facts_formatted)
 
     max_attempts = 3
     raw_data = None
     for attempt in range(max_attempts):
         try:
-            response = model.generate_content(prompt)
+            response = model.generate_content(user_prompt)
+
             raw_text = response.text or "{}"
             clean_json = clean_json_response(raw_text)
             raw_data = json.loads(clean_json)
@@ -194,6 +215,7 @@ def verify_single_claim(claim: Claim, all_site_facts: List[SiteFact]) -> ClaimVe
             if is_transient_error(e) and attempt < max_attempts - 1:
                 time.sleep(2 ** (attempt + 1))
                 continue
+            clean_err = re.sub(r'AIza[A-Za-z0-9_\-]{30,60}', '[REDACTED]', str(e))
             return ClaimVerdict(
                 claim_text=claim.text,
                 category=claim.category,
@@ -201,7 +223,7 @@ def verify_single_claim(claim: Claim, all_site_facts: List[SiteFact]) -> ClaimVe
                 verdict="not_found",
                 evidence_text=None,
                 source_url=None,
-                reasoning=f"Verification service unavailable: {str(e)}"
+                reasoning=f"Verification service unavailable: {clean_err}"
             )
 
 
@@ -290,15 +312,16 @@ def calculate_trust_score(verdicts: List[ClaimVerdict]) -> Tuple[Optional[float]
 
     return trust_score, coverage_status, summary_label, breakdown
 
-def cross_check_claims(claims: List[Claim], site_facts: List[SiteFact]) -> CheckResponse:
+def cross_check_claims(claims: List[Claim], site_facts: List[SiteFact], api_key: Optional[str] = None) -> CheckResponse:
     """
     Executes cross-checking for a list of claims against site facts.
     Returns CheckResponse with verdicts, trust score, and coverage status.
+    Supports BYOK per-request api_key.
     """
     verdicts: List[ClaimVerdict] = []
 
     for claim in claims:
-        verdict = verify_single_claim(claim, site_facts)
+        verdict = verify_single_claim(claim, site_facts, api_key=api_key)
         verdicts.append(verdict)
         time.sleep(1.0)
 
@@ -311,4 +334,5 @@ def cross_check_claims(claims: List[Claim], site_facts: List[SiteFact]) -> Check
         score_breakdown=breakdown,
         verdicts=verdicts
     )
+
 

@@ -520,20 +520,23 @@ def discover_pages(base_url: str, homepage_html: Optional[str]) -> Dict[str, str
 
     return discovered
 
-def extract_facts_from_page(page_text: str, page_type: str, source_url: str) -> List[SiteFact]:
-    """Uses Gemini LLM to extract structured facts from a single page's text."""
+def extract_facts_from_page(page_text: str, page_type: str, source_url: str, api_key: Optional[str] = None) -> List[SiteFact]:
+    """
+    Extracts structured facts from a web page text using Gemini LLM.
+    Supports per-request BYOK api_key with fallback to GEMINI_API_KEY env var.
+    """
     if not page_text or len(page_text.strip()) < 50:
         return []
 
     # Limit text length sent to LLM per page to 6000 chars for efficiency
     truncated_text = page_text[:6000]
 
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
+    effective_api_key = (api_key.strip() if api_key and api_key.strip() else None) or os.getenv("GEMINI_API_KEY")
+    if not effective_api_key:
         raise ValueError("GEMINI_API_KEY environment variable missing.")
 
     model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
-    genai.configure(api_key=api_key)
+    genai.configure(api_key=effective_api_key)
 
     model = genai.GenerativeModel(
         model_name=model_name,
@@ -578,10 +581,11 @@ def extract_facts_from_page(page_text: str, page_type: str, source_url: str) -> 
     return []
 
 
-def crawl_site(target_url: str) -> CrawlResponse:
+def crawl_site(target_url: str, api_key: Optional[str] = None) -> CrawlResponse:
     """
     Crawls a target website, discovers key pages, extracts facts per page,
     and returns a structured CrawlResponse.
+    Supports BYOK per-request api_key.
     """
     base_url = normalize_url(target_url)
 
@@ -660,7 +664,7 @@ def crawl_site(target_url: str) -> CrawlResponse:
             if status == "degraded":
                 has_degraded = True
             pages_found.append(ptype)
-            page_facts = extract_facts_from_page(clean_text, ptype, page_url)
+            page_facts = extract_facts_from_page(clean_text, ptype, page_url, api_key=api_key)
             all_facts.extend(page_facts)
             crawled_count += 1
             time.sleep(2.5)  # Respect Gemini free-tier rate limit (max 20 RPM)

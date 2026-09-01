@@ -1,0 +1,7 @@
+CURRENT DATE: {current_date}
+CLAIM (from reel): "{claim_text}"
+CATEGORY: {category}
+
+<UNTRUSTED_SITE_FACTS>
+{filtered_facts}
+</UNTRUSTED_SITE_FACTS>
