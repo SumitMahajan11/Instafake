@@ -64,7 +64,23 @@ def init_db() -> bool:
             connect_args["check_same_thread"] = False
 
         engine = create_engine(db_url, connect_args=connect_args, pool_pre_ping=True if not db_url.startswith("sqlite") else False)
-        Base.metadata.create_all(bind=engine)
+        
+        # Run Alembic migrations automatically on startup if alembic.ini is present
+        try:
+            from alembic.config import Config
+            from alembic import command
+            alembic_ini_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "alembic.ini")
+            if os.path.exists(alembic_ini_path):
+                alembic_cfg = Config(alembic_ini_path)
+                alembic_cfg.set_main_option("sqlalchemy.url", db_url)
+                command.upgrade(alembic_cfg, "head")
+                logger.info("Alembic migrations applied successfully.")
+            else:
+                Base.metadata.create_all(bind=engine)
+        except Exception as migration_err:
+            logger.warning(f"Alembic migration execution note ({migration_err}). Ensuring tables via create_all.")
+            Base.metadata.create_all(bind=engine)
+
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         _db_initialized = True
         logger.info("Database initialized successfully.")

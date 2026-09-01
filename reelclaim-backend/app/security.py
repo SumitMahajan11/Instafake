@@ -34,7 +34,7 @@ def check_for_prompt_injection(text: Optional[str], source_identifier: str = "un
             start_idx = max(0, match.start() - 20)
             end_idx = min(len(text), match.end() + 20)
             snippet = text[start_idx:end_idx].replace("\n", " ")
-            logger.warning(
+            logging.warning(
                 f"SECURITY WARNING: Potential prompt injection pattern '{match.group(0)}' detected in {source_identifier}. "
                 f"Snippet: '{snippet}'"
             )
