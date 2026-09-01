@@ -1,4 +1,5 @@
-import { FullAuditRequest, FullAuditResponse, ProgressStep } from './types';
+import { FullAuditRequest, FullAuditResponse, RecentAuditsResponse, ProgressStep } from './types';
+
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://reelclaim-api.onrender.com';
 
@@ -7,6 +8,7 @@ const RETRY_DELAYS_MS = [3000, 5000, 8000, 10000]; // 3s, 5s, 8s, 10s (cumulativ
 export async function auditReel(
   caption: string,
   overrideUrl?: string,
+  geminiApiKey?: string,
   onStepChange?: (step: ProgressStep, details?: { retryAttempt?: number; maxRetries?: number; nextDelaySec?: number }) => void
 ): Promise<FullAuditResponse> {
   if (onStepChange) onStepChange('extracting');
@@ -14,7 +16,9 @@ export async function auditReel(
   const payload: FullAuditRequest = {
     caption,
     override_url: overrideUrl && overrideUrl.trim().length > 0 ? overrideUrl.trim() : undefined,
+    gemini_api_key: geminiApiKey && geminiApiKey.trim().length > 0 ? geminiApiKey.trim() : undefined,
   };
+
 
   const executeRequest = async (): Promise<FullAuditResponse> => {
     const response = await fetch(`${API_BASE_URL}/audit-reel`, {
@@ -82,4 +86,23 @@ export async function auditReel(
     throw new Error(err.message || 'Failed to connect to ReelClaim audit service');
   }
 }
+
+export async function fetchAuditById(auditId: string): Promise<FullAuditResponse> {
+  const response = await fetch(`${API_BASE_URL}/audits/${auditId}`);
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch audit #${auditId}`);
+  }
+  return await response.json();
+}
+
+export async function fetchRecentAudits(limit: number = 10, offset: number = 0): Promise<RecentAuditsResponse> {
+  const response = await fetch(`${API_BASE_URL}/audits?limit=${limit}&offset=${offset}`);
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to fetch recent audits');
+  }
+  return await response.json();
+}
+
 

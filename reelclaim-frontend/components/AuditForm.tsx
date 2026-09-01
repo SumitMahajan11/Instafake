@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Loader2, AlertCircle, Link as LinkIcon, FileText, Info } from 'lucide-react';
+import { Search, Loader2, AlertCircle, Link as LinkIcon, FileText, Info, Key } from 'lucide-react';
 import { ProgressStep } from '@/lib/types';
 
 interface AuditFormProps {
-  onSubmit: (caption: string, url: string) => void;
+  onSubmit: (caption: string, url: string, apiKey?: string) => void;
   isLoading: boolean;
   currentStep: ProgressStep;
   retryDetails?: { retryAttempt?: number; maxRetries?: number; nextDelaySec?: number } | null;
@@ -41,6 +41,8 @@ const PRESET_EXAMPLES = [
 export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, currentStep, retryDetails, error }) => {
   const [caption, setCaption] = useState<string>('');
   const [url, setUrl] = useState<string>('');
+  const [apiKey, setApiKey] = useState<string>('');
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
@@ -71,7 +73,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, curre
     } else if (elapsedSeconds < 15) {
       return 'Crawling DOM facts with Playwright engine...';
     } else if (elapsedSeconds < 24) {
-      return 'Cross-checking claims with Gemini 2.5 Flash...';
+      return 'Cross-checking claims with Gemini...';
     } else {
       return 'Finalizing claim verification report...';
     }
@@ -95,7 +97,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, curre
       }
     }
 
-    onSubmit(caption.trim(), url.trim());
+    onSubmit(caption.trim(), url.trim(), apiKey.trim());
   };
 
   const handlePresetSelect = (preset: typeof PRESET_EXAMPLES[0]) => {
@@ -217,6 +219,49 @@ export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, curre
           />
         </div>
 
+        {/* Collapsible BYOK Section */}
+        <div className="space-y-2 pt-1 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            <Key className="w-3.5 h-3.5" style={{ color: 'var(--text-accent)' }} />
+            <span>Use your own key (BYOK)</span>
+            <span className="text-[10px] font-normal" style={{ color: 'var(--text-muted)' }}>
+              {showAdvanced ? '▲ hide' : '▼ optional'}
+            </span>
+          </button>
+
+          {showAdvanced && (
+            <div className="p-3 rounded-xl border space-y-2 animate-fadeIn" style={{ backgroundColor: 'var(--bg-card-subtle)', borderColor: 'var(--border-med)' }}>
+              <label className="block text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                Google Gemini API Key
+              </label>
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                disabled={isLoading}
+                placeholder="AIzaSy..."
+                className="w-full px-3 py-2 border rounded-xl text-xs font-mono transition-all focus:outline-none focus:ring-2"
+                style={{
+                  backgroundColor: 'var(--bg)',
+                  borderColor: 'var(--border-med)',
+                  color: 'var(--text-primary)',
+                }}
+              />
+              <div className="flex items-start gap-1.5 text-[11px] leading-snug" style={{ color: 'var(--text-muted)' }}>
+                <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: 'var(--text-accent)' }} />
+                <span>
+                  Avoids shared rate limits (20 RPM). Required for high-volume or self-hosted use. Key is stored only in memory for this session and is never persisted.
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Validation or Error Message */}
         {(validationError || error) && (
           <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-rose-950/40 border border-rose-900/60 text-rose-300 text-sm">
@@ -255,6 +300,7 @@ export const AuditForm: React.FC<AuditFormProps> = ({ onSubmit, isLoading, curre
           )}
         </button>
       </form>
+
 
       {/* Multi-step Live Loading Progress */}
       {isLoading && (

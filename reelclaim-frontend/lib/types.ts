@@ -57,11 +57,15 @@ export interface CheckResponse {
 export interface FullAuditRequest {
   caption: string;
   override_url?: string;
+  gemini_api_key?: string;
 }
+
 
 export type CrawlStatus = "success" | "degraded" | "busy" | "overloaded" | "blocked" | "failed" | "no_url_found";
 
 export interface FullAuditResponse {
+  id?: string;
+  created_at?: string;
   caption: string;
   promoted_site: string | null;
   claims: Claim[];
@@ -69,4 +73,26 @@ export interface FullAuditResponse {
   check_result: CheckResponse | null;
 }
 
+export interface RecentAuditItem {
+  id: string;
+  created_at: string | null;
+  caption: string;
+  promoted_site: string | null;
+  crawl_status: string | null;
+  trust_score: number | null;
+  coverage_status: string | null;
+  summary_label: string | null;
+  total_claims: number;
+  status: string;
+}
+
+export interface RecentAuditsResponse {
+  total: number;
+  limit: number;
+  offset: number;
+  audits: RecentAuditItem[];
+  persistence?: string;
+}
+
 export type ProgressStep = "idle" | "extracting" | "crawling" | "crawling_busy" | "cross_checking" | "complete" | "error";
+
